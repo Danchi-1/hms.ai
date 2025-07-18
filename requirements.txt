@@ -34,3 +34,5 @@ requests==2.31.0
 
 # Connection Pooling
 bleak==0.21.1
+gunicorn==20.1.0
+dotenv==1.0.0
