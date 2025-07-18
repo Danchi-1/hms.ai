@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HMS AI - Health Monitoring System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Authentication Page -->
+    <div class="auth-page" id="authPage">
+        <div class="auth-container fade-in">
+            <div class="auth-header">
+                <h1>HMS AI</h1>
+                <p>Advanced Health Monitoring System</p>
+            </div>
+
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login">Sign In</button>
+                <button class="auth-tab" data-tab="signup">Sign Up</button>
+            </div>
+
+            <!-- Login Form -->
+            <form class="auth-form active" id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" name="password" required>
+                </div>
+                <button type="submit" class="auth-button">Sign In</button>
+            </form>
+
+            <!-- Signup Form -->
+            <form class="auth-form" id="signupForm">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" class="form-input" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confirm Password</label>
+                    <input type="password" class="form-input" name="confirmPassword" required>
+                </div>
+                <button type="submit" class="auth-button">Create Account</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard Page -->
+    <div class="dashboard-page" id="dashboardPage">
+        <div class="dashboard-header">
+            <div class="container">
+                <div class="dashboard-nav">
+                    <div class="dashboard-logo">HMS AI</div>
+                    <div class="dashboard-user">
+                        <div class="user-info">
+                            <div class="user-avatar" id="userAvatar">U</div>
+                            <span id="userName">User</span>
+                        </div>
+                        <button class="logout-btn" id="logoutBtn">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-content">
+            <div class="container">
+                <!-- Health Metrics -->
+                <div class="dashboard-card fade-in">
+                    <div class="card-header">
+                        <h3 class="card-title">Health Metrics</h3>
+                        <div class="card-icon" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);">
+                            ❤️
+                        </div>
+                    </div>
+                    <div class="health-metrics" id="healthMetrics">
+                        <div class="metric-card">
+                            <div class="metric-value" id="heartRate">--</div>
+                            <div class="metric-label">Heart Rate (BPM)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="bloodOxygen">--</div>
+                            <div class="metric-label">Blood Oxygen (%)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">
+                                <span class="status-indicator" id="healthStatus">Normal</span>
+                            </div>
+                            <div class="metric-label">Health Status</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Data Collection -->
+                    <div class="dashboard-card fade-in">
+                        <div class="card-header">
+                            <h3 class="card-title">Data Collection</h3>
+                            <div class="card-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                📊
+                            </div>
+                        </div>
+                        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                            Start collecting real-time health data from connected devices.
+                        </p>
+                        <div class="action-buttons">
+                            <button class="action-btn btn-primary" id="startCollectionBtn">
+                                <span>▶️</span>
+                                Start Collection
+                            </button>
+                            <button class="action-btn btn-secondary" id="stopCollectionBtn" disabled>
+                                <span>⏹️</span>
+                                Stop Collection
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- AI Prediction -->
+                    <div class="dashboard-card fade-in">
+                        <div class="card-header">
+                            <h3 class="card-title">AI Prediction</h3>
+                            <div class="card-icon" style="background: linear-gradient(135deg, #4c51bf 0%, #6b46c1 100%);">
+                                🧠
+                            </div>
+                        </div>
+                        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                            Get AI-powered health predictions based on your data.
+                        </p>
+                        <div class="action-buttons">
+                            <button class="action-btn btn-primary" id="runPredictionBtn">
+                                <span>🔮</span>
+                                Run Prediction
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Model Training -->
+                    <div class="dashboard-card fade-in">
+                        <div class="card-header">
+                            <h3 class="card-title">Model Training</h3>
+                            <div class="card-icon" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);">
+                                🚀
+                            </div>
+                        </div>
+                        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                            Train the AI model with your personalized health data.
+                        </p>
+                        <div class="action-buttons">
+                            <button class="action-btn btn-success" id="trainModelBtn">
+                                <span>🎯</span>
+                                Train Model
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="js/main.js"></script>
+</body>
+</html>
