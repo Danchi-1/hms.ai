@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - hms_AI Health Monitoring</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="dashboard-page active" id="dashboardPage">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <div class="container">
+                <div class="dashboard-nav">
+                    <div class="dashboard-logo">hms_AI</div>
+                    <div class="dashboard-user">
+                        <div class="user-info">
+                            <div class="user-avatar" id="userAvatar">J</div>
+                            <span id="userName">John Doe</span>
+                        </div>
+                        <button class="logout-btn" id="logoutBtn">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            <div class="container">
+                <div class="dashboard-welcome">
+                    <h1>Welcome back, <span id="welcomeUserName">John</span>!</h1>
+                    <p>Here's your health overview for today</p>
+                </div>
+
+                <!-- Health Metrics Grid -->
+                <div class="dashboard-grid">
+                    <!-- Real-time Health Data -->
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Real-time Health Data</h3>
+                            <div class="card-icon" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);">
+                                ❤️
+                            </div>
+                        </div>
+                        <div class="health-metrics">
+                            <div class="metric-card">
+                                <div class="metric-value" id="heartRate">72</div>
+                                <div class="metric-label">Heart Rate (BPM)</div>
+                                <div class="status-indicator status-normal">Normal</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="steps">8,547</div>
+                                <div class="metric-label">Steps Today</div>
+                                <div class="status-indicator status-normal">Good</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="calories">2,150</div>
+                                <div class="metric-label">Calories Burned</div>
+                                <div class="status-indicator status-normal">On Track</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Health Analysis -->
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3 class="card-title">AI Health Analysis</h3>
+                            <div class="card-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                🧠
+                            </div>
+                        </div>
+                        <div class="analysis-content">
+                            <div class="analysis-item">
+                                <h4>Overall Health Score</h4>
+                                <div class="health-score">
+                                    <div class="score-circle">
+                                        <span class="score-number">85</span>
+                                        <span class="score-label">/100</span>
+                                    </div>
+                                    <div class="score-description">
+                                        <p>Your health metrics are looking good! Your heart rate variability has improved by 12% this week.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="recommendations">
+                                <h4>AI Recommendations</h4>
+                                <ul class="recommendation-list">
+                                    <li>💧 Increase water intake by 2 glasses daily</li>
+                                    <li>🚶 Add 15 minutes of walking after meals</li>
+                                    <li>😴 Maintain consistent sleep schedule</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sleep Tracking -->
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Sleep Analysis</h3>
+                            <div class="card-icon" style="background: linear-gradient(135deg, #4c51bf 0%, #6b46c1 100%);">
+                                😴
+                            </div>
+                        </div>
+                        <div class="sleep-metrics">
+                            <div class="metric-card">
+                                <div class="metric-value" id="sleepHours">7.5</div>
+                                <div class="metric-label">Hours Slept</div>
+                                <div class="status-indicator status-normal">Good</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="sleepQuality">82%</div>
+                                <div class="metric-label">Sleep Quality</div>
+                                <div class="status-indicator status-normal">Excellent</div>
+                            </div>
+                        </div>
+                        <div class="sleep-chart">
+                            <canvas id="sleepChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Vital Signs Monitoring -->
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Vital Signs</h3>
+                            <div class="card-icon" style="background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);">
+                                🩺
+                            </div>
+                        </div>
+                        <div class="vital-signs">
+                            <div class="vital-item">
+                                <div class="vital-label">Blood Pressure</div>
+                                <div class="vital-value">120/80 mmHg</div>
+                                <div class="status-indicator status-normal">Normal</div>
+                            </div>
+                            <div class="vital-item">
+                                <div class="vital-label">Blood Oxygen</div>
+                                <div class="vital-value">98%</div>
+                                <div class="status-indicator status-normal">Excellent</div>
+                            </div>
+                            <div class="vital-item">
+                                <div class="vital-label">Temperature</div>
+                                <div class="vital-value">98.6°F</div>
+                                <div class="status-indicator status-normal">Normal</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Device Status -->
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Device Status</h3>
+                            <div class="card-icon" style="background: linear-gradient(135deg, #38b2ac 0%, #319795 100%);">
+                                ⌚
+                            </div>
+                        </div>
+                        <div class="device-info">
+                            <div class="device-item">
+                                <div class="device-name">Apple Watch Series 8</div>
+                                <div class="device-status">
+                                    <span class="status-indicator status-normal">Connected</span>
+                                    <span class="battery-level">Battery: 78%</span>
+                                </div>
+                            </div>
+                            <div class="sync-info">
+                                <p>Last sync: 2 minutes ago</p>
+                                <button class="sync-btn">Sync Now</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Quick Actions</h3>
+                            <div class="card-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                ⚡
+                            </div>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn btn-primary" id="startWorkout">
+                                🏃 Start Workout
+                            </button>
+                            <button class="action-btn btn-secondary" id="logMedicine">
+                                💊 Log Medicine
+                            </button>
+                            <button class="action-btn btn-success" id="emergencyContact">
+                                🚨 Emergency Contact
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/api.js"></script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - hms_AI Health Monitoring</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+        <!-- <div class="head-hero-visual">
+            <div class="head-hero-image pulse">
+                <i class="fas fa-heartbeat"></i>
+            </div>
+        </div> -->
+    </div>
+
+    <div class="auth-page">
+        <div class="auth-container">
+            <div class="auth-header">
+                <h1>hms_AI</h1>
+                <p>Create your account to start monitoring your health</p>
+            </div>
+
+            <a href="index.html" class="home-button">
+                <i class="fas fa-home"></i> Home
+            </a>
+
+            <div class="auth-tabs">
+                <a href="login.html" class="auth-tab">Login</a>
+                <button class="auth-tab active" id="signupTab">Sign Up</button>
+            </div>
+
+            <form class="auth-form active" id="signupForm">
+                <div class="form-group">
+                    <label class="form-label" for="fullName">Full Name</label>
+                    <input type="text" class="form-input" id="fullName" name="fullName" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="email">Email Address</label>
+                    <input type="email" class="form-input" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" class="form-input" id="password" name="password" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="confirmPassword">Confirm Password</label>
+                    <input type="password" class="form-input" id="confirmPassword" name="confirmPassword" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="age">Age</label>
+                    <input type="number" class="form-input" id="age" name="age" min="1" max="120" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="gender">Gender</label>
+                    <select class="form-input" id="gender" name="gender" required>
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                        <option value="prefer-not-to-say">Prefer not to say</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="wearableDevice">Wearable Device (Optional)</label>
+                    <select class="form-input" id="wearableDevice" name="wearableDevice">
+                        <option value="">Select Device</option>
+                        <option value="apple-watch">Apple Watch</option>
+                        <option value="fitbit">Fitbit</option>
+                        <option value="garmin">Garmin</option>
+                        <option value="samsung-galaxy">Samsung Galaxy Watch</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="termsAccepted" name="termsAccepted" required>
+                        <span class="checkmark"></span>
+                        I agree to the <a href="#" class="terms-link">Terms of Service</a> and <a href="#" class="terms-link">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <button type="submit" class="auth-button" id="signupBtn">
+                    Create Account
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Already have an account? <a href="login.html" class="auth-link">Login here</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>

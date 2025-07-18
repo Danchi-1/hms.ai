@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - hms_AI Health Monitoring</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="auth-page">
+        <div class="auth-container">
+            <div class="auth-header">
+                <h1>hms_AI</h1>
+                <p>Welcome back! Log in to continue monitoring your health</p>
+            </div>
+
+            <a href="index.html" class="home-button">
+                <i class="fas fa-home"></i> Home
+            </a>
+
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="loginTab">Login</button>
+                <a href="signup.html" class="auth-tab">Sign Up</a>
+            </div>
+
+            <form class="auth-form active" id="loginForm">
+                <div class="form-group">
+                    <label class="form-label" for="email">Email Address</label>
+                    <input type="email" class="form-input" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" class="form-input" id="password" name="password" required>
+                </div>
+
+                <button type="submit" class="auth-button" id="loginBtn">
+                    Log In
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Don’t have an account? <a href="signup.html" class="auth-link">Create one here</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>

@@ -327,3 +327,36 @@ class HMSApp {
                 `;
             }
         });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Function to show the loading spinner
+            function showLoadingSpinner() {
+                const spinner = document.getElementById('loadingSpinner');
+                spinner.classList.add('active');
+            }
+
+            // Function to hide the loading spinner
+            function hideLoadingSpinner() {
+                const spinner = document.getElementById('loadingSpinner');
+                spinner.classList.remove('active');
+            }
+
+            // Example usage: Show spinner for 3 seconds, then hide it
+            showLoadingSpinner();
+            setTimeout(hideLoadingSpinner, 3000);
+
+            // Function to start the pulsing animation on the hero visual
+            function startPulsing() {
+                const heroImage = document.querySelector('.head-hero-image');
+                heroImage.classList.add('pulse');
+            }
+
+            // Function to stop the pulsing animation on the hero visual
+            function stopPulsing() {
+                const heroImage = document.querySelector('.head-hero-image');
+                heroImage.classList.remove('pulse');
+            }
+
+            // Example usage: Start pulsing animation
+            startPulsing();
+        });

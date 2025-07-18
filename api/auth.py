@@ -30,7 +30,7 @@ def validate_password(password):
     return True, "Password is valid"
 
 @auth_bp.route('/register', methods=['POST'])
-def register():
+def register(data):
     """User registration endpoint"""
     try:
         data = request.get_json()
@@ -82,7 +82,7 @@ def register():
         return jsonify({'error': f'Registration failed: {str(e)}'}), 500
 
 @auth_bp.route('/login', methods=['POST'])
-def login():
+def login(email, password):
     """User login endpoint"""
     try:
         data = request.get_json()
@@ -91,6 +91,7 @@ def login():
         if not data or not all(k in data for k in ['username', 'password']):
             return jsonify({'error': 'Missing username or password'}), 400
         
+        email = data['email'].lower()
         username = data['username'].strip()
         password = data['password']
         
