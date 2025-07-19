@@ -1,13 +1,18 @@
+[nixpacks]
+language = "python"
+
+[variables]
+PYTHON_VERSION = "3.12"
+
 [phases.setup]
-nixPkgs = ["gcc", "python312", "git"]
+nixPkgs = ["gcc", "python312", "python312Packages.pip", "git"]
 
 [phases.install]
 cmds = [
-  "python -m venv venv",
-  ". venv/bin/activate",
-  "pip install --upgrade pip",
-  "pip install -r requirements.txt"
+  "python3.12 -m ensurepip",
+  "python3.12 -m pip install --upgrade pip",
+  "python3.12 -m pip install -r requirements.txt"
 ]
 
-[phases.start]
+[start]
 cmd = "gunicorn app:app"
