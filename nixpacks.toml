@@ -1,15 +1,12 @@
-[nixpacks]
-language = "python"
-
-[variables]
-PYTHON_VERSION = "3.12"
-
 [phases.setup]
-nixPkgs = ["gcc", "python312", "python312Packages.pip", "git"]
+nixPkgs = [
+  "python312Full",         # Full version includes pip
+  "gcc",                   # Needed for bcrypt, xgboost, etc.
+  "git"
+]
 
 [phases.install]
 cmds = [
-  "python3.12 -m ensurepip",
   "python3.12 -m pip install --upgrade pip",
   "python3.12 -m pip install -r requirements.txt"
 ]
