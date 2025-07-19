@@ -1,14 +1,15 @@
 [phases.setup]
 nixPkgs = [
   "python312Full",
+  "pip",
   "gcc",
   "git"
 ]
 
 [phases.install]
 cmds = [
-  "python3.12 -m pip install --upgrade pip",
-  "python3.12 -m pip install -r requirements.txt"
+  "pip install --upgrade pip",
+  "pip install -r requirements.txt"
 ]
 
 [start]
