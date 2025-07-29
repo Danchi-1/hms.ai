@@ -1,7 +1,6 @@
 [phases.setup]
 nixPkgs = [
   "python312Full",
-  "pip",
   "gcc",
   "git"
 ]
