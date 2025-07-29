@@ -201,7 +201,7 @@ def cleanup(error):
 
 # ---------- ENTRY POINT ----------
 
-if __name__ == '__main__':
+if __name__ == '__app__':
     model_path = 'model_training/model.pkl'
     if not os.path.exists(model_path):
         print("Warning: No trained model found.")
