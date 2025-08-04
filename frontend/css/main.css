@@ -465,6 +465,17 @@ body {
     margin-right: 8px;
 }
 
+.dashboard-btn {
+    background: none;
+    color: white;
+    border: none;
+}
+
+.dashboard-btn:hover {
+    color: var(--primary-color);
+    cursor: pointer;
+}
+
 .home-button:hover {
     color: var(--primary-dark);
     transform: translateY(-2px);

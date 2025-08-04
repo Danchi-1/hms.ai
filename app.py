@@ -198,6 +198,13 @@ def cleanup(error):
     if error:
         print(f"Request error: {error}")
 
+# @app.route('/')
+# def serve_index():
+#     return send_from_directory(app.static_folder, 'index.html')
+
+# @app.route('/<path:path>')
+# def serve_static_file(path):
+#     return send_from_directory(app.static_folder, path)
 
 # ---------- ENTRY POINT ----------
 
