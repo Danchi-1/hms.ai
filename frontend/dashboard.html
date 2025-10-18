@@ -47,7 +47,7 @@
                     <p id="welcomeMessage">Loading your health overview...</p>
                     <div class="last-updated">
                         Last updated: <span id="lastUpdated">Never</span>
-                        <button id="refreshBtn" class="refresh-btn">🔄 Refresh</button>
+                        <button id="refreshBtn" class="refresh-btn">Refresh</button>
                     </div>
                 </div>
 
@@ -193,6 +193,7 @@
                             <div class="no-devices">
                                 <p>No devices connected</p>
                                 <button class="scan-devices-btn" id="scanDevicesBtn">🔍 Scan for Devices</button>
+                                <div class="devices-list" id="devicesList"></div>
                             </div>
                         </div>
                     </div>
@@ -207,16 +208,16 @@
                         </div>
                         <div class="action-buttons">
                             <button class="action-btn btn-primary" id="startWorkout">
-                                🏃 Start Workout
+                                Start Workout
                             </button>
                             <button class="action-btn btn-secondary" id="logMedicine">
-                                💊 Log Medicine
+                                Log Medicine
                             </button>
-                            <button class="action-btn btn-success" id="emergencyContact">
-                                🚨 Emergency Contact
+                            <button class="action-btn scan-devices-btn btn-success" id="emergencyContact">
+                                Emergency Contact
                             </button>
-                            <button class="action-btn btn-info" id="exportData">
-                                📊 Export Data
+                            <button class="action-btn scan-devices-btn btn-info" id="exportData">
+                                Export Data
                             </button>
                         </div>
                     </div>

@@ -883,9 +883,36 @@ class DashboardManager {
     }
 }
 
+async function scanDevices() {
+    const sbd_btn = document.getElementById('scanDevicesBtn');
+    sdb_btn.disabled = true;
+    sbd_btn.textContent = 'Scanning...';
+    const list = document.getElementById('devicesList')
+    try {
+        const response = await fetch('/scan');
+        const devices = await response.json();
+
+        if (devices.length == 0) {
+            list.innerHTML = "<li>No devices found</li>";
+        } else {
+            devices.forEach(device => {
+                const li = Document.createElement("li")
+                li.textContent = `${d.name} (${d.address})`;
+                li.appendChild(li);
+            })
+        }
+    } catch(error) {
+        console.error('Error scanning devices:', error);
+    } finally {
+        sbd_btn.disabled = false;
+        sbd_btn.textContent = "Rescan"
+    }
+}
+
 // Initialize dashboard when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.dashboardManager = new DashboardManager();
+    document.getElementById('scanDevicesBtn').addEventListener('click', scanDevices);
 });
 
 // Cleanup on page unload

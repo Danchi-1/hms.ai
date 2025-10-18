@@ -1,22 +1,6 @@
-/* Enhanced Dashboard CSS */
-/* :root {
-    --primary-color: #667eea;
-    --secondary-color: #764ba2;
-    --success-color: #48bb78;
-    --warning-color: #ed8936;
-    --error-color: #f56565;
-    --info-color: #4299e1;
-    --bg-primary: #f8fafc;
-    --bg-secondary: #ffffff;
-    --text-primary: #2d3748;
-    --text-secondary: #718096;
-    --border-color: #e2e8f0;
-    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    --border-radius: 12px;
+:root {
     --transition: all 0.3s ease;
-} */
+}
 
 * {
     margin: 0;
@@ -203,6 +187,7 @@ body {
 .refresh-btn {
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
+    color: white;
     padding: 6px 12px;
     border-radius: 6px;
     cursor: pointer;
@@ -537,4 +522,19 @@ body {
 
 .vital-label {
     color: white;
+}
+
+.scan-devices-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+button:hover {
+    cursor: pointer;
 }

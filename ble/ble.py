@@ -350,7 +350,7 @@ async def main():
     
     def data_handler(health_data):
         """Handle incoming health data"""
-        print(f"Received health data: {health_data}")
+        logger.info(f"Recieved health data: {health_data}")
     
     monitor = BLEHealthMonitor(data_callback=data_handler)
     
@@ -382,6 +382,7 @@ async def main():
             print("Disconnected from all devices")
     else:
         print("No health devices found")
+    return devices
 
 if __name__ == "__main__":
     asyncio.run(main())
