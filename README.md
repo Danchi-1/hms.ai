@@ -12,6 +12,13 @@ The Health Monitoring System (HMS) is a comprehensive platform designed to monit
 - **Machine Learning**: Trains and uses machine learning models to predict health trends.
 - **Web Interface**: Provides a user-friendly web interface for data visualization and interaction.
 
+## Tech Stack
+- **Backend**: Python, Flask, TensorFlow, scikit-learn, XGBoost, BLE communication
+- **Frontend**: HTML, CSS, JS (planned React migration)
+- **Infrastructure**: Railway, Vercel
+- **AI**: classification models, preprocessing pipelines (still working on these features)
+- **Security**: bcrypt
+
 ## Project Structure
 
 - `api/`: Contains API endpoints for authentication, predictions, and wearable device management.
