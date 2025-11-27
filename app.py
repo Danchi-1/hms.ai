@@ -187,10 +187,10 @@ def start_background_services():
     print("Background services started successfully")
 
 
-@app.before_request
-def initialize_app():
-    if not background_threads:
-        start_background_services()
+# @app.before_request
+# def initialize_app():
+#     if not background_threads:
+#         start_background_services()
 
 
 @app.teardown_appcontext

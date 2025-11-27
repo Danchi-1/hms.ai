@@ -360,33 +360,3 @@ class HMSApp {
             // Example usage: Start pulsing animation
             startPulsing();
         });
-        document.addEventListener('DOMContentLoaded', function() {
-            const signupForm = document.getElementById('signupForm');
-            const loginForm = document.getElementById('loginForm');
-            const password = document.getElementById('password').value;
-
-            if (signupForm) {
-                signupForm.addEventListener('submit', function(event) {
-                    event.preventDefault();
-                    const confirmPassword = document.getElementById('confirm_password').value;
-                    if (password != confirmPassword) {
-                        alert('passwords do not match');
-                        return false;                        
-                    }
-                    // Redirect to dashboard.html after signup
-                    window.location.href = 'dashboard.html';
-                });
-            }
-
-            if (loginForm) {
-                loginForm.addEventListener('submit', function(event) {
-                    event.preventDefault();
-                        // Redirect to dashboard.html after login
-                        window.location.href = 'dashboard.html';
-                });
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const dashboardBtn = document.getElementById('dashboard-btn-home');
-        });
