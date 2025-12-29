@@ -6,22 +6,44 @@
 }
 
 :root {
-    --primary-color: #667eea;
-    --primary-dark: #5a67d8;
-    --secondary-color: #764ba2;
-    --success-color: #48bb78;
-    --error-color: #f56565;
-    --warning-color: #ed8936;
-    --bg-primary: #0f1419;
-    --bg-secondary: #1a202c;
-    --bg-tertiary: #2d3748;
-    --text-primary: #ffffff;
-    --text-secondary: #a0aec0;
-    --border-color: #4a5568;
-    --shadow-light: rgba(102, 126, 234, 0.1);
-    --shadow-medium: rgba(102, 126, 234, 0.2);
-    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* Premium Color Palette */
+    --primary-color: #6366f1;
+    /* Indigo 500 */
+    --primary-dark: #4f46e5;
+    /* Indigo 600 */
+    --secondary-color: #ec4899;
+    /* Pink 500 */
+    --bg-primary: #0f172a;
+    /* Slate 900 */
+    --bg-secondary: #1e293b;
+    /* Slate 800 */
+    --bg-tertiary: #334155;
+    /* Slate 700 */
+    --text-primary: #f8fafc;
+    /* Slate 50 */
+    --text-secondary: #94a3b8;
+    /* Slate 400 */
+    --success-color: #10b981;
+    /* Emerald 500 */
+    --warning-color: #f59e0b;
+    /* Amber 500 */
+    --error-color: #ef4444;
+    /* Red 500 */
+
+    --border-color: rgba(148, 163, 184, 0.1);
+    --border-radius: 16px;
+
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+    --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
+
+    --glass-bg: rgba(30, 41, 59, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.05);
+    --backdrop-blur: blur(12px);
+
+    --gradient-primary: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     --gradient-secondary: linear-gradient(135deg, #4c51bf 0%, #6b46c1 100%);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body {
@@ -70,8 +92,13 @@ body {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Header Navigation */
@@ -195,8 +222,90 @@ body {
     background: none;
     border: none;
     color: var(--text-primary);
-    font-size: 1.5rem;
+    font-size: 24px;
     cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: var(--transition);
+}
+
+.mobile-menu-toggle:hover {
+    background: var(--bg-tertiary);
+}
+
+/* Mobile & Desktop Helper Classes */
+.mobile-only {
+    display: none !important;
+}
+
+.desktop-only {
+    display: flex !important;
+}
+
+@media (max-width: 768px) {
+    .desktop-only {
+        display: none !important;
+    }
+
+    .mobile-only {
+        display: block !important;
+    }
+
+    .mobile-menu-toggle {
+        display: block;
+    }
+
+    .nav-links {
+        display: flex;
+        position: fixed;
+        top: 70px;
+        /* Adjust based on header height */
+        left: 0;
+        right: 0;
+        background: var(--bg-secondary);
+        flex-direction: column;
+        padding: 24px;
+        border-bottom: 1px solid var(--border-color);
+        transform: translateY(-150%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 999;
+        box-shadow: var(--shadow-md);
+        gap: 16px;
+        align-items: flex-start;
+    }
+
+    #navLinks.active {
+        transform: translateY(0);
+    }
+
+
+    .nav-links.mobile-hidden {
+        /* Base state handled by transform, keeping selector for specificity if needed, 
+           or just remove if truly empty. Adding display:none here to be safe and explicit */
+        display: none;
+    }
+
+    .nav-links a,
+    .nav-links button {
+        width: 100%;
+        text-align: left;
+        padding: 12px;
+        border-radius: 8px;
+    }
+
+    .nav-links a:hover {
+        background: var(--bg-tertiary);
+    }
+
+    .dashboard-nav {
+        height: 70px;
+    }
+
+    .nav-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
 }
 
 /* Section Titles */
@@ -349,6 +458,7 @@ body {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -364,6 +474,7 @@ body {
         opacity: 0;
         transform: translateY(30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -375,9 +486,12 @@ body {
 }
 
 @keyframes pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: scale(1);
     }
+
     50% {
         transform: scale(1.05);
     }
@@ -419,8 +533,13 @@ body {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Hero Visual */
@@ -439,9 +558,12 @@ body {
 }
 
 @keyframes pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: scale(1);
     }
+
     50% {
         transform: scale(1.1);
     }

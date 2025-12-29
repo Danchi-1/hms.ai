@@ -4,6 +4,7 @@ import json
 import sys
 import os
 import sqlite3
+import asyncio
 
 # Add project root to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -346,7 +347,7 @@ def export_data():
         return jsonify(export_data), 200
         
     except Exception as e:
-        return jsonify({'error': f'Export failed: {str(e)}'}), 500import asyncio
+        return jsonify({'error': f'Export failed: {str(e)}'}), 500
 
 @wearable_bp.route('/connect-closest', methods=['POST'])
 def connect_closest_device():

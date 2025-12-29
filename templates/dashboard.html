@@ -21,22 +21,35 @@
 
     <div class="dashboard-page" id="dashboardPage">
         <!-- Dashboard Header -->
+        <!-- Dashboard Header -->
         <div class="dashboard-header">
             <div class="container">
                 <div class="dashboard-nav">
-                    <div class="dashboard-logo">hms_AI</div>
-                    <div class="dashboard-user">
+                    <div class="nav-left">
+                        <button class="mobile-menu-toggle" id="mobileMenuBtn">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <div class="dashboard-logo">hms_AI</div>
+                    </div>
+
+                    <div class="nav-links mobile-hidden" id="navLinks">
                         <a href="{{ url_for('home') }}" class="home-button">
                             <i class="fas fa-home"></i> Home
                         </a>
+                        <!-- Mobile-only logout that appears inside menu -->
+                        <button class="logout-btn mobile-only"
+                            onclick="window.dashboardManager.logout()">Logout</button>
+                    </div>
+
+                    <div class="dashboard-user">
                         <div class="user-info">
                             <div class="user-avatar" id="userAvatar"></div>
-                            <div class="user-details">
+                            <div class="user-details desktop-only">
                                 <span id="userName">Loading...</span>
                                 <span id="userEmail" class="user-email">Loading...</span>
                             </div>
                         </div>
-                        <button class="logout-btn" id="logoutBtn">Logout</button>
+                        <button class="logout-btn desktop-only" id="logoutBtn">Logout</button>
                     </div>
                 </div>
             </div>
@@ -218,16 +231,16 @@
                         </div>
                         <div class="action-buttons">
                             <button class="action-btn btn-primary" id="startWorkout">
-                                Start Workout
+                                <i class="fas fa-running fa-lg"></i> Start Workout
                             </button>
                             <button class="action-btn btn-secondary" id="logMedicine">
-                                Log Medicine
+                                <i class="fas fa-pills fa-lg"></i> Log Medicine
                             </button>
                             <button class="action-btn scan-devices-btn btn-success" id="emergencyContact">
-                                Emergency Contact
+                                <i class="fas fa-phone-alt fa-lg"></i> Emergency
                             </button>
                             <button class="action-btn scan-devices-btn btn-info" id="exportData">
-                                Export Data
+                                <i class="fas fa-file-export fa-lg"></i> Export Data
                             </button>
                         </div>
                     </div>
