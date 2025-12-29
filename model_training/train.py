@@ -7,8 +7,6 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 from sklearn.model_selection import cross_val_score, GridSearchCV
-import matplotlib.pyplot as plt
-import seaborn as sns
 from datetime import datetime
 import inspect
 import warnings
