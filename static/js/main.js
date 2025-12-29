@@ -12,21 +12,39 @@ class HMSApp {
 
     setupEventListeners() {
         // Auth tab switching
-        document.querySelectorAll('.auth-tab').forEach(tab => {
-            tab.addEventListener('click', () => this.switchAuthTab(tab.dataset.tab));
-        });
+        const authTabs = document.querySelectorAll('.auth-tab');
+        if (authTabs.length > 0) {
+            authTabs.forEach(tab => {
+                tab.addEventListener('click', () => this.switchAuthTab(tab.dataset.tab));
+            });
+        }
 
         // Form submissions
-        document.getElementById('loginForm').addEventListener('submit', (e) => this.handleLogin(e));
-        document.getElementById('signupForm').addEventListener('submit', (e) => this.handleSignup(e));
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) loginForm.addEventListener('submit', (e) => this.handleLogin(e));
+
+        const signupForm = document.getElementById('signupForm');
+        if (signupForm) signupForm.addEventListener('submit', (e) => this.handleSignup(e));
 
         // Dashboard actions
-        document.getElementById('logoutBtn').addEventListener('click', () => this.handleLogout());
-        document.getElementById('startCollectionBtn').addEventListener('click', () => this.startDataCollection());
-        document.getElementById('stopCollectionBtn').addEventListener('click', () => this.stopDataCollection());
-        document.getElementById('runPredictionBtn').addEventListener('click', () => this.runPrediction());
-        document.getElementById('trainModelBtn').addEventListener('click', () => this.trainModel());
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) logoutBtn.addEventListener('click', () => this.handleLogout());
+
+        const startBtn = document.getElementById('startCollectionBtn');
+        if (startBtn) startBtn.addEventListener('click', () => this.startDataCollection());
+
+        const stopBtn = document.getElementById('stopCollectionBtn');
+        if (stopBtn) stopBtn.addEventListener('click', () => this.stopDataCollection());
+
+        const predictBtn = document.getElementById('runPredictionBtn');
+        if (predictBtn) predictBtn.addEventListener('click', () => this.runPrediction());
+
+        const trainBtn = document.getElementById('trainModelBtn');
+        if (trainBtn) trainBtn.addEventListener('click', () => this.trainModel());
     }
+
+
+
 
     switchAuthTab(tabName) {
         document.querySelectorAll('.auth-tab').forEach(tab => {
@@ -317,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Add some interactive animations
 document.addEventListener('mousemove', (e) => {
     const authPage = document.getElementById('authPage');
-    if (authPage.style.display !== 'none') {
+    if (authPage && authPage.style.display !== 'none') {
         const x = e.clientX / window.innerWidth;
         const y = e.clientY / window.innerHeight;
 
@@ -333,29 +351,34 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to show the loading spinner
     function showLoadingSpinner() {
         const spinner = document.getElementById('loadingSpinner');
-        spinner.classList.add('active');
+        if (spinner) spinner.classList.add('active');
     }
 
     // Function to hide the loading spinner
     function hideLoadingSpinner() {
         const spinner = document.getElementById('loadingSpinner');
-        spinner.classList.remove('active');
+        if (spinner) spinner.classList.remove('active');
     }
 
     // Example usage: Show spinner for 3 seconds, then hide it
-    showLoadingSpinner();
-    setTimeout(hideLoadingSpinner, 3000);
+    // Only run this if we are on a page with a spinner initial state usually
+    // or just checking if spinner exists is enough.
+    const spinner = document.getElementById('loadingSpinner');
+    if (spinner) {
+        showLoadingSpinner();
+        setTimeout(hideLoadingSpinner, 3000);
+    }
 
     // Function to start the pulsing animation on the hero visual
     function startPulsing() {
         const heroImage = document.querySelector('.head-hero-image');
-        heroImage.classList.add('pulse');
+        if (heroImage) heroImage.classList.add('pulse');
     }
 
     // Function to stop the pulsing animation on the hero visual
     function stopPulsing() {
         const heroImage = document.querySelector('.head-hero-image');
-        heroImage.classList.remove('pulse');
+        if (heroImage) heroImage.classList.remove('pulse');
     }
 
     // Example usage: Start pulsing animation
