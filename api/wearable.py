@@ -346,4 +346,61 @@ def export_data():
         return jsonify(export_data), 200
         
     except Exception as e:
-        return jsonify({'error': f'Export failed: {str(e)}'}), 500
+        return jsonify({'error': f'Export failed: {str(e)}'}), 500import asyncio
+
+@wearable_bp.route('/connect-closest', methods=['POST'])
+def connect_closest_device():
+    """Connect to the closest (strongest signal) BLE device"""
+    auth_error = require_auth()
+    if auth_error:
+        return auth_error
+    
+    try:
+        user_id = session['user_id']
+        
+        # Initialize BLE scanner
+        ble_scanner = BLEHealthMonitor()
+        
+        # Scan for devices (short scan for quick connection)
+        devices = asyncio.run(ble_scanner.scan_for_devices(duration=5))
+        
+        if not devices:
+             return jsonify({'error': 'No health devices found nearby'}), 404
+             
+        # Select the closest device (first in list since it's sorted by RSSI)
+        best_device = devices[0]
+        device_address = best_device['address']
+        device_name = best_device.get('name', 'Unknown Device')
+        device_type = best_device.get('device_type', 'health_device')
+        
+        # Connect
+        success = asyncio.run(ble_scanner.connect_to_device(device_address))
+        
+        if success:
+            # Store device connection
+            with db.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    INSERT OR REPLACE INTO device_connections 
+                    (user_id, device_name, device_type, mac_address, is_active, last_sync)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ''', (user_id, device_name, device_type, device_address, 1, datetime.now()))
+                conn.commit()
+            
+            return jsonify({
+                'message': f'Connected to {device_name}',
+                'device': {
+                    'name': device_name,
+                    'address': device_address,
+                    'type': device_type,
+                    'rssi': best_device.get('rssi')
+                }
+            }), 200
+        else:
+            return jsonify({
+                'error': f'Failed to connect to {device_name}. Please try again.',
+                'device_address': device_address
+            }), 400
+            
+    except Exception as e:
+        return jsonify({'error': f'Connection failed: {str(e)}'}), 500

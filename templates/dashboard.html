@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - hms_AI Health Monitoring</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+</head>
+
+<body>
+    <!-- Loading Spinner -->
+    <div class="loading-spinner active" id="loadingSpinner">
+        <div class="spinner"></div>
+        <p>Loading your health data...</p>
+    </div>
+
+    <div class="dashboard-page" id="dashboardPage">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <div class="container">
+                <div class="dashboard-nav">
+                    <div class="dashboard-logo">hms_AI</div>
+                    <div class="dashboard-user">
+                        <a href="{{ url_for('home') }}" class="home-button">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                        <div class="user-info">
+                            <div class="user-avatar" id="userAvatar"></div>
+                            <div class="user-details">
+                                <span id="userName">Loading...</span>
+                                <span id="userEmail" class="user-email">Loading...</span>
+                            </div>
+                        </div>
+                        <button class="logout-btn" id="logoutBtn">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            <div class="container">
+                <div class="dashboard-welcome">
+                    <h1>Welcome back, <span id="welcomeUserName">Loading...</span>!</h1>
+                    <p id="welcomeMessage">Loading your health overview...</p>
+                    <div class="last-updated">
+                        Last updated: <span id="lastUpdated">Never</span>
+                        <button id="refreshBtn" class="refresh-btn">Refresh</button>
+                    </div>
+                </div>
+
+                <!-- Health Metrics Grid -->
+                <div class="dashboard-grid">
+                    <!-- Real-time Health Data -->
+                    <div class="dashboard-card" id="healthDataCard">
+                        <div class="card-header">
+                            <h3 class="card-title">Real-time Health Data</h3>
+                            <div class="card-icon"
+                                style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);">
+                                ❤️
+                            </div>
+                            <div class="connection-status" id="connectionStatus">
+                                <span class="status-dot"></span>
+                                <span class="status-text">Connecting...</span>
+                            </div>
+                        </div>
+                        <div class="health-metrics">
+                            <div class="metric-card">
+                                <div class="metric-value" id="heartRate">--</div>
+                                <div class="metric-label">Heart Rate (BPM)</div>
+                                <div class="status-indicator" id="heartRateStatus">Loading...</div>
+                                <div class="metric-trend" id="heartRateTrend"></div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="steps">--</div>
+                                <div class="metric-label">Steps Today</div>
+                                <div class="status-indicator" id="stepsStatus">Loading...</div>
+                                <div class="metric-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" id="stepsProgress"></div>
+                                    </div>
+                                    <span class="progress-text" id="stepsGoal">Goal: 10,000</span>
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="calories">--</div>
+                                <div class="metric-label">Calories Burned</div>
+                                <div class="status-indicator" id="caloriesStatus">Loading...</div>
+                                <div class="metric-trend" id="caloriesTrend"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Health Analysis -->
+                    <div class="dashboard-card" id="aiAnalysisCard">
+                        <div class="card-header">
+                            <h3 class="card-title">AI Health Analysis</h3>
+                            <div class="card-icon"
+                                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                🧠
+                            </div>
+                            <div class="analysis-confidence" id="analysisConfidence">
+                                Confidence: <span id="confidenceScore">--</span>%
+                            </div>
+                        </div>
+                        <div class="analysis-content">
+                            <div class="analysis-item">
+                                <h4>Overall Health Score</h4>
+                                <div class="health-score">
+                                    <div class="score-circle" id="healthScoreCircle">
+                                        <span class="score-number" id="healthScore">--</span>
+                                        <span class="score-label">/100</span>
+                                    </div>
+                                    <div class="score-description">
+                                        <p id="healthScoreDescription">Analyzing your health data...</p>
+                                        <div class="score-breakdown" id="scoreBreakdown"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="recommendations">
+                                <h4>AI Recommendations</h4>
+                                <ul class="recommendation-list" id="recommendationList">
+                                    <li class="loading-recommendation">🤖 Analyzing your data to provide personalized
+                                        recommendations...</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sleep Tracking -->
+                    <div class="dashboard-card" id="sleepCard">
+                        <div class="card-header">
+                            <h3 class="card-title">Sleep Analysis</h3>
+                            <div class="card-icon"
+                                style="background: linear-gradient(135deg, #4c51bf 0%, #6b46c1 100%);">
+                                😴
+                            </div>
+                            <div class="sleep-period" id="sleepPeriod">Last 7 days</div>
+                        </div>
+                        <div class="sleep-metrics">
+                            <div class="metric-card">
+                                <div class="metric-value" id="sleepHours">--</div>
+                                <div class="metric-label">Avg Hours Slept</div>
+                                <div class="status-indicator" id="sleepHoursStatus">Loading...</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="sleepQuality">--%</div>
+                                <div class="metric-label">Sleep Efficiency</div>
+                                <div class="status-indicator" id="sleepQualityStatus">Loading...</div>
+                            </div>
+                        </div>
+                        <div class="sleep-chart">
+                            <canvas id="sleepChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Vital Signs Monitoring -->
+                    <div class="dashboard-card" id="vitalSignsCard">
+                        <div class="card-header">
+                            <h3 class="card-title">Vital Signs</h3>
+                            <div class="card-icon"
+                                style="background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);">
+                                🩺
+                            </div>
+                            <div class="vitals-timestamp" id="vitalsTimestamp">Last reading: --</div>
+                        </div>
+                        <div class="vital-signs">
+                            <div class="vital-item">
+                                <div class="vital-label">Blood Pressure</div>
+                                <div class="vital-value" id="bloodPressure">-- / -- mmHg</div>
+                                <div class="status-indicator" id="bloodPressureStatus">No data</div>
+                            </div>
+                            <div class="vital-item">
+                                <div class="vital-label">Blood Oxygen</div>
+                                <div class="vital-value" id="bloodOxygen">--%</div>
+                                <div class="status-indicator" id="bloodOxygenStatus">No data</div>
+                            </div>
+                            <div class="vital-item">
+                                <div class="vital-label">Temperature</div>
+                                <div class="vital-value" id="temperature">--°F</div>
+                                <div class="status-indicator" id="temperatureStatus">No data</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Device Status -->
+                    <div class="dashboard-card" id="deviceStatusCard">
+                        <div class="card-header">
+                            <h3 class="card-title">Connected Devices</h3>
+                            <div class="card-icon"
+                                style="background: linear-gradient(135deg, #38b2ac 0%, #319795 100%);">
+                                ⌚
+                            </div>
+                            <div class="device-count" id="deviceCount">0 devices</div>
+                        </div>
+                        <div class="device-info" id="deviceInfo">
+                            <div class="no-devices">
+                                <p>No devices connected</p>
+                                <button class="scan-devices-btn" id="scanDevicesBtn">🔍 Scan for Devices</button>
+                                <div class="devices-list" id="devicesList"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Quick Actions</h3>
+                            <div class="card-icon"
+                                style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                ⚡
+                            </div>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn btn-primary" id="startWorkout">
+                                Start Workout
+                            </button>
+                            <button class="action-btn btn-secondary" id="logMedicine">
+                                Log Medicine
+                            </button>
+                            <button class="action-btn scan-devices-btn btn-success" id="emergencyContact">
+                                Emergency Contact
+                            </button>
+                            <button class="action-btn scan-devices-btn btn-info" id="exportData">
+                                Export Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error Messages -->
+                <div class="error-message" id="errorMessage" style="display: none;">
+                    <div class="error-content">
+                        <h4>⚠️ Connection Error</h4>
+                        <p id="errorText">Unable to load health data. Please check your connection and try again.</p>
+                        <button id="retryBtn" class="retry-btn">Retry</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification System -->
+    <div id="notificationContainer" class="notification-container"></div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <!-- <script src="js/api.js"></script> -->
+</body>
+
+</html>

@@ -82,6 +82,8 @@ class BLEHealthMonitor:
                 health_devices.append(device_info)
                 logger.info(f"Found health device: {device.name} ({device.address})")
         
+        # Sort by RSSI (descending) - strongest signal first
+        health_devices.sort(key=lambda x: x.get('rssi', -100), reverse=True)
         return health_devices
     
     def _is_health_device(self, device) -> bool:

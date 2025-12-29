@@ -147,8 +147,8 @@ class DatabaseManager:
             cursor = conn.cursor()
             cursor.execute('''
                 SELECT id, username, email FROM users 
-                WHERE username = ? AND password_hash = ?
-            ''', (username, password_hash))
+                WHERE (username = ? OR email = ?) AND password_hash = ?
+            ''', (username, username, password_hash))
             return cursor.fetchone()
     
     def store_heart_rate(self, user_id, timestamp, heart_rate, device_id=None):
