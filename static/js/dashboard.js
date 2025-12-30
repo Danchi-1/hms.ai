@@ -95,7 +95,7 @@ class DashboardManager {
 
     async loadUserProfile() {
         try {
-            const response = await fetch(`${API_BASE}/api/user/profile`, {
+            const response = await fetch(`${API_BASE}/api/auth/profile`, {
                 credentials: 'include'
             });
 
@@ -126,9 +126,9 @@ class DashboardManager {
         const userAvatar = document.getElementById('userAvatar');
         const welcomeUserName = document.getElementById('welcomeUserName');
 
-        if (userName) userName.textContent = userData.name || 'User';
+        if (userName) userName.textContent = userData.username || userData.name || 'User';
         if (userEmail) userEmail.textContent = userData.email || '';
-        if (welcomeUserName) welcomeUserName.textContent = (userData.name || 'User').split(' ')[0];
+        if (welcomeUserName) welcomeUserName.textContent = (userData.username || userData.name || 'User').split(' ')[0];
 
         if (userAvatar) {
             userAvatar.textContent = userData.initials || userData.name?.charAt(0).toUpperCase() || 'U';
