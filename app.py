@@ -27,8 +27,19 @@ app = Flask(__name__,
 
 app.secret_key = os.getenv('SECRET_KEY', 'your-secret-key-here')
 
-# Enable CORS
-CORS(app, supports_credentials=True)
+# Configure CORS
+CORS(app, resources={
+    r"/*": {
+        "origins": [
+            "https://hmsai.vercel.app",
+            "https://hmsai.onrender.com",
+            "http://localhost:5000",
+            "http://127.0.0.1:5000"
+        ],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+}, supports_credentials=True)
 
 # Register blueprints
 app.register_blueprint(auth_bp, url_prefix='/api/auth')

@@ -148,7 +148,7 @@ class HMSApp {
             if (response.ok) {
                 window.location.href = '/dashboard';
             } else {
-                this.showNotification(result.message || 'Login failed', 'error');
+                this.showNotification(result.error || result.message || 'Login failed', 'error');
             }
         } catch (error) {
             this.showNotification('Connection error. Please try again.', 'error');
@@ -195,7 +195,7 @@ class HMSApp {
             if (response.ok) {
                 window.location.href = '/dashboard';
             } else {
-                this.showNotification(result.message || 'Signup failed', 'error');
+                this.showNotification(result.error || result.message || 'Signup failed', 'error');
             }
         } catch (error) {
             this.showNotification('Connection error. Please try again.', 'error');

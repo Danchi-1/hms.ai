@@ -481,28 +481,7 @@ body {
     box-shadow: 0 0 0 3px var(--shadow-light);
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .nav-links {
-        display: none;
-    }
 
-    .mobile-menu-toggle {
-        display: block;
-    }
-
-    .container {
-        padding: 0 15px;
-    }
-
-    .section-title {
-        font-size: 2rem;
-    }
-
-    .section-subtitle {
-        font-size: 1rem;
-    }
-}
 
 /* Animations */
 @keyframes fadeIn {
