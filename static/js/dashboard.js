@@ -95,7 +95,7 @@ class DashboardManager {
 
     async loadUserProfile() {
         try {
-            const response = await fetch('/api/user/profile', {
+            const response = await fetch(`${API_BASE}/api/user/profile`, {
                 credentials: 'include'
             });
 
@@ -153,7 +153,7 @@ class DashboardManager {
         this.hideError();
 
         try {
-            const response = await fetch(`/api/dashboard/${this.userId}`, {
+            const response = await fetch(`${API_BASE}/api/dashboard/${this.userId}`, {
                 credentials: 'include',
                 cache: forceRefresh ? 'no-cache' : 'default'
             });
@@ -832,7 +832,8 @@ class DashboardManager {
 
     async exportData() {
         try {
-            const response = await fetch(`/api/export/${this.userId}`, {
+            // Corrected endpoint matching api/wearable.py
+            const response = await fetch(`${API_BASE}/api/wearable/data/export?days=30`, {
                 credentials: 'include'
             });
 
@@ -868,7 +869,7 @@ class DashboardManager {
             this.showNotification('Scanning for closest device (strongest signal)...', 'info');
 
             try {
-                const response = await fetch('/api/wearable/connect-closest', {
+                const response = await fetch(`${API_BASE}/api/wearable/connect-closest`, {
                     method: 'POST',
                     credentials: 'include'
                 });
