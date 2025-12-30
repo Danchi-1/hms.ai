@@ -1,3 +1,15 @@
+const getApiBaseUrl = () => {
+    // Check if we are in a production environment (Vercel, etc.)
+    const hostname = window.location.hostname;
+    if (hostname.includes('vercel.app') || hostname.includes('github.io')) {
+        return 'https://hmsai.onrender.com';
+    }
+    // Default to relative path for localhost or same-origin deployment
+    return '';
+};
+
+const API_BASE = getApiBaseUrl();
+
 // Dashboard.js - Enhanced with real API integration
 class DashboardManager {
     constructor() {

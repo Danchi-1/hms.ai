@@ -1,3 +1,15 @@
+const getApiBaseUrl = () => {
+    // Check if we are in a production environment (Vercel, etc.)
+    const hostname = window.location.hostname;
+    if (hostname.includes('vercel.app') || hostname.includes('github.io')) {
+        return 'https://hmsai.onrender.com';
+    }
+    // Default to relative path for localhost or same-origin deployment
+    return '';
+};
+
+const API_BASE = getApiBaseUrl();
+
 class HMSApp {
     constructor() {
         this.currentUser = null;
@@ -135,7 +147,7 @@ class HMSApp {
         this.showLoading();
 
         try {
-            const response = await fetch('/api/auth/login', {
+            const response = await fetch(`${API_BASE}/api/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -146,6 +158,8 @@ class HMSApp {
             const result = await response.json();
 
             if (response.ok) {
+                // For Vercel/Static deployment, we can't rely on server redirect logic implicitly if serving index.html
+                // But /dashboard is rewritten to /templates/dashboard.html in vercel.json
                 window.location.href = '/dashboard';
             } else {
                 this.showNotification(result.error || result.message || 'Login failed', 'error');
@@ -182,7 +196,7 @@ class HMSApp {
                 password: signupData.password
             };
 
-            const response = await fetch('/api/auth/register', {
+            const response = await fetch(`${API_BASE}/api/auth/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
