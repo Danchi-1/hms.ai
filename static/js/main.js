@@ -77,15 +77,25 @@ class HMSApp {
 
 
     switchAuthTab(tabName) {
-        document.querySelectorAll('.auth-tab').forEach(tab => {
+        if (!tabName) return;
+
+        const tabs = document.querySelectorAll('.auth-tab');
+        const forms = document.querySelectorAll('.auth-form');
+
+        if (tabs.length === 0 || forms.length === 0) return;
+
+        tabs.forEach(tab => {
             tab.classList.remove('active');
         });
-        document.querySelectorAll('.auth-form').forEach(form => {
+        forms.forEach(form => {
             form.classList.remove('active');
         });
 
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-        document.getElementById(`${tabName}Form`).classList.add('active');
+        const targetTab = document.querySelector(`[data-tab="${tabName}"]`);
+        const targetForm = document.getElementById(`${tabName}Form`);
+
+        if (targetTab) targetTab.classList.add('active');
+        if (targetForm) targetForm.classList.add('active');
     }
 
     showLoading() {
@@ -201,24 +211,40 @@ class HMSApp {
     }
 
     showAuthPage() {
-        document.getElementById('authPage').style.display = 'flex';
-        document.getElementById('dashboardPage').classList.remove('active');
+        const authPage = document.getElementById('authPage');
+        const dashboardPage = document.getElementById('dashboardPage');
+        if (authPage && dashboardPage) {
+            authPage.style.display = 'flex';
+            dashboardPage.classList.remove('active');
+        } else {
+            // Fallback for non-SPA: redirect to login
+            window.location.href = '/login';
+        }
     }
 
     showDashboard() {
-        document.getElementById('authPage').style.display = 'none';
-        document.getElementById('dashboardPage').classList.add('active');
+        const authPage = document.getElementById('authPage');
+        const dashboardPage = document.getElementById('dashboardPage');
 
-        if (this.currentUser) {
-            document.getElementById('userName').textContent = this.currentUser.name || this.currentUser.email;
-            document.getElementById('userAvatar').textContent = (this.currentUser.name || this.currentUser.email).charAt(0).toUpperCase();
+        if (authPage && dashboardPage) {
+            authPage.style.display = 'none';
+            dashboardPage.classList.add('active');
+
+            if (this.currentUser) {
+                const nameEl = document.getElementById('userName');
+                const avatarEl = document.getElementById('userAvatar');
+                if (nameEl) nameEl.textContent = this.currentUser.name || this.currentUser.email;
+                if (avatarEl) avatarEl.textContent = (this.currentUser.name || this.currentUser.email).charAt(0).toUpperCase();
+            }
         }
     }
 
     checkAuthStatus() {
-        // In a real app, you'd check for stored tokens/session
-        // For demo purposes, we'll start with the auth page
-        this.showAuthPage();
+        // Only run SPA auth check if we are in the SPA environment
+        const authPage = document.getElementById('authPage');
+        if (authPage) {
+            this.showAuthPage();
+        }
     }
 
     async loadDashboardData() {
