@@ -148,10 +148,62 @@ body {
     color: var(--primary-color);
 }
 
-.auth-buttons {
+/* Profile Chip in Nav */
+.nav-profile-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 16px 6px 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    text-decoration: none !important;
+    /* Override default link underline */
+}
+
+.nav-profile-chip:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+}
+
+.nav-avatar {
+    width: 32px;
+    height: 32px;
+    background: var(--gradient-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: white;
+    font-size: 0.9rem;
+}
+
+.nav-username {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.mobile-auth-buttons {
     display: flex;
     gap: 1rem;
     align-items: center;
+}
+
+@media (max-width: 768px) {
+    .mobile-auth-buttons {
+        flex-direction: column;
+        width: 100%;
+        gap: 0.5rem;
+    }
+
+    .mobile-auth-buttons .btn {
+        width: 100%;
+        text-align: center;
+    }
 }
 
 /* Button Styles */
