@@ -81,8 +81,11 @@ class DashboardManager {
             this.exportData();
         });
 
-        document.getElementById('scanDevicesBtn')?.addEventListener('click', () => {
-            this.scanForDevices();
+        // Use delegation for dynamic Scan button
+        document.addEventListener('click', (e) => {
+            if (e.target && e.target.id === 'scanDevicesBtn') {
+                this.scanForDevices();
+            }
         });
 
         // Window focus event to refresh data
@@ -157,6 +160,11 @@ class DashboardManager {
                 credentials: 'include',
                 cache: forceRefresh ? 'no-cache' : 'default'
             });
+
+            if (response.status === 401) {
+                window.location.href = '/login?expired=true';
+                return;
+            }
 
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
