@@ -1,80 +1,125 @@
-# Health Monitoring System (HMS)
+# Health Monitoring System (HMS.AI)
 
-## Overview
+**HMS.AI** is an advanced health analytics platform designed to collect, visualize, and analyze data from wearable devices. It combines a modern, responsive web interface with machine learning data analysis to provide actionable health insights.
 
-The Health Monitoring System (HMS) is a comprehensive platform designed to monitor and analyze health data from wearable devices. It leverages machine learning to provide insights into user health metrics, including activity levels, sleep patterns, and heart rate.
+## 🚀 Key Features & Achievements
 
-## Features
+| Feature | Goal | Current Achievement |
+|:---|:---|:---|
+| **User Authentication** | Secure, seamless access control. | ✅ **Implemented**: Login/Signup with SHA256 password hashing, session management, and "Remember Me" functionality. includes a personalized "Profile Chip" in the header. |
+| **Interactive Dashboard** | Real-time visualization of health metrics. | ✅ **Implemented**: Dynamic dashboard displaying Heart Rate, Steps, Sleep Quality, and Calories using Chart.js. Includes auto-refresh logic and error handling. |
+| **AI Health Score** | Quantifiable health metric based on data. | ✅ **Implemented**: Custom algorithm that aggregates vital signs into a 0-100 "Health Score" with personalized insights and confidence levels. |
+| **ML-Driven Recommendations** | Actionable advice based on user data. | ✅ **Implemented**: Scikit-learn integration (`api/predict.py`) that analyzes user vitals to generate context-aware health tips (e.g., "Improve sleep efficiency"). |
+| **Wearable Connectivity** | Connect to BLE devices. | ✅ **Simulated**: "Connect Closest Device" feature (`/api/wearable/connect-closest`) simulates BLE scanning and RSSI signal strength detection. |
+| **Data Export** | allow users to own their data. | ✅ **Implemented**: Full CSV export functionality for health metrics (`/api/wearable/data/export`). |
+| **Responsive UI/UX** | Premium experience across devices. | ✅ **Implemented**: Glassmorphism-inspired dark UI, fully responsive Mobile Hamburger Menu, and smooth CSS animations. |
+| **Hybrid Deployment** | Scalable, cost-effective hosting. | ✅ **Implemented**: Frontend deployed on **Vercel** (Global CDN) communicating with a **Render** (Python/Flask) backend. |
 
-- **BLE Integration**: Connects with wearable devices via Bluetooth Low Energy (BLE).
-- **Data Collection**: Collects health data from wearable devices.
-- **Data Preprocessing**: Preprocesses raw health data for analysis.
-- **Machine Learning**: Trains and uses machine learning models to predict health trends.
-- **Web Interface**: Provides a user-friendly web interface for data visualization and interaction.
+---
 
-## Tech Stack
-- **Backend**: Python, Flask, TensorFlow, scikit-learn, XGBoost, BLE communication
-- **Frontend**: HTML, CSS, JS (planned React migration)
-- **Infrastructure**: Railway, Vercel
-- **AI**: classification models, preprocessing pipelines (still working on these features)
-- **Security**: bcrypt
+## 🛠 Tech Stack
 
-## Project Structure
+### Frontend
+- **Core**: HTML5, CSS3 (Custom Glassmorphism Design), Vanilla JavaScript (ES6+).
+- **Visualization**: Chart.js for interactive health graphs.
+- **Routing**: Client-side routing logic for SPA-like experience on Vercel.
 
-- `api/`: Contains API endpoints for authentication, predictions, and wearable device management.
-- `ble/`: Handles BLE communication with wearable devices.
-- `collector/`: Manages data collection from wearable devices.
-- `data/`: Stores raw and processed health data.
-- `database/`: Manages database operations and models.
-- `frontend/`: Contains the web interface files.
-- `model_training/`: Includes scripts for data preprocessing and model training.
-- `main.py`: The main entry point for the application.
+### Backend
+- **Framework**: Flask (Python 3.12).
+- **Data Processing**: Pandas, NumPy.
+- **Machine Learning**: Scikit-Learn (RandomForest, GradientBoosting for risk prediction).
+- **Database**: SQLite (Development) / Ephemeral (Cloud).
+- **Communication**: REST API with structured JSON responses.
 
-## Setup Instructions
+### Infrastructure
+- **Containerization**: Docker (optimized build).
+- **Hosting**:
+    - **Frontend**: Vercel (Static hosting with Rewrite rules).
+    - **Backend**: Render (Gunicorn WSGI server).
+- **CI/CD**: Git-based deployment triggers.
+- **Optimization**: Aggressive cache-busting (`?v=3.1`) for asset updates.
 
-1. **Clone the Repository**:
-   ```bash
-   git clone https://github.com/your-repo/hms.git
-   cd hms
-   ```
+---
 
-2. **Install Dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+## 📂 Project Structure
 
-3. **Set Up Environment Variables**:
-   Create a `.env` file in the root directory and add the following variables:
-   ```
-   SECRET_KEY=your-secret-key-here
-   FLASK_DEBUG=true
-   PORT=5000
-   ```
+```
+hms.ai/
+├── api/                 # Flask Blueprints (API endpoints)
+│   ├── auth.py          # Login, Register, Profile management
+│   ├── dashboard.py     # Dashboard data aggregation
+│   ├── predict.py       # ML Model inference endpoints
+│   └── wearable.py      # BLE connectivity & Data export
+├── database/            # Database logic
+│   └── models.py        # User & HealthData models (SQLite)
+├── model_training/      # ML Pipeline
+│   └── train.py         # Script to train/optimize Health AI models
+├── static/              # Static Assets
+│   ├── css/             # Main.css (Responsive design)
+│   └── js/              # Main.js, Dashboard.js (Frontend logic)
+├── templates/           # HTML Templates (Jinja2 compatible)
+├── app.py               # Main Flask Application Entry Point
+├── Dockerfile           # Production container configuration
+├── requirements.txt     # Python dependencies (Optimized)
+└── vercel.json          # Vercel routing configuration
+```
 
-4. **Run the Application**:
-   ```bash
-   python main.py
-   ```
+---
 
-5. **Access the Web Interface**:
-   Open your browser and navigate to `http://localhost:5000`.
+## 🔧 Setup & Installation
 
-## API Endpoints
+### Local Development
 
-- **Authentication**:
-  - `POST /api/auth/login`: User login.
-  - `POST /api/auth/signup`: User registration.
+1.  **Clone the Repository**
+    ```bash
+    git clone https://github.com/Danchi-1/hms.ai.git
+    cd hms.ai
+    ```
 
-- **Predictions**:
-  - `POST /api/predict`: Get health predictions.
+2.  **Install Dependencies**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-- **Wearable Devices**:
-  - `GET /api/wearable/status`: Get status of connected wearable devices.
+3.  **Set Environment Variables**
+    Create a `.env` file:
+    ```env
+    SECRET_KEY=your_secret_key
+    FLASK_DEBUG=1
+    PORT=5000
+    ```
 
-## Contributing
+4.  **Run the Application**
+    ```bash
+    python app.py
+    ```
+    Visit `http://localhost:5000` in your browser.
 
-Contributions are welcome! Please fork the repository and submit a pull request with your changes.
+### Deployment
 
-## License
+-   **Backend (Render)**: Connect repo to Render. Set Build Command: `pip install -r requirements.txt`, Start Command: `gunicorn app:app`.
+-   **Frontend (Vercel)**: Import repo to Vercel. Select `Other` framework. Ensure `vercel.json` exists for routing.
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+---
+
+## 🧪 AI & Machine Learning Integration
+
+The system uses a **Random Forest Classifier** trained on health metrics (Steps, Sleep, Heart Rate, etc.) to predict potential health risks.
+
+-   **Training**: `python model_training/train.py`
+-   **Inference**: The model is loaded at startup. When the dashboard loads, it feeds user data into the model to generate a "Risk Level" and "Confidence Score".
+-   **Recommendations**: Rule-based logic supplements the ML model to provide immediate, explainable advice.
+
+---
+
+## 🔐 Security Measures
+
+-   **Password Hashing**: SHA256 via `hashlib` (Salted).
+-   **Session Security**: Flask `session` with secret key encryption.
+-   **Input Validation**: Regex sanitization for Usernames and Emails.
+-   **CORS Policy**: Strict Origin access control for Vercel/Render communication.
+
+---
+
+## 📄 License
+This project is licensed under the MIT License.

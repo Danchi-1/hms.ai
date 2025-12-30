@@ -13,7 +13,7 @@ const API_BASE = getApiBaseUrl();
 // Dashboard.js - Enhanced with real API integration
 class DashboardManager {
     constructor() {
-        this.userId = this.getUserId();
+        this.userId = null; // Will be set after profile load
         this.refreshInterval = null;
         this.charts = {};
         this.isLoading = false;
@@ -22,31 +22,23 @@ class DashboardManager {
         this.init();
     }
 
-    init() {
+    async init() {
         this.setupEventListeners();
-        this.loadUserProfile();
-        this.loadDashboardData();
-        this.startAutoRefresh();
-    }
+        // Wait for profile to load before fetching dashboard data
+        await this.loadUserProfile();
 
-    getUserId() {
-        // Extract user ID from session or URL params
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get('user_id') || this.getSessionUserId() || 1;
-    }
-
-    getSessionUserId() {
-        // Try to get user ID from session storage or local user data
-        const userData = sessionStorage.getItem('userData');
-        if (userData) {
-            try {
-                return JSON.parse(userData).id;
-            } catch (e) {
-                console.error('Error parsing user data:', e);
-            }
+        if (this.userId) {
+            this.loadDashboardData();
+            this.startAutoRefresh();
+        } else {
+            console.error("Could not determine user ID. Redirecting to login.");
+            window.location.href = '/login';
         }
-        return null;
     }
+
+    // getUserId removed as it's unsafe/buggy
+
+    // getSessionUserId helper removed or kept as backup if needed, but profile is safer
 
     setupEventListeners() {
         // Refresh button
@@ -104,14 +96,11 @@ class DashboardManager {
 
             if (response.ok) {
                 const userData = await response.json();
+                this.userId = userData.user_id; // Set ID from backend
                 this.updateUserProfile(userData);
             } else {
-                // Fallback to session data or default
-                this.updateUserProfile({
-                    name: 'User',
-                    email: 'user@example.com',
-                    initials: 'U'
-                });
+                console.warn("Failed to load profile, session might be invalid.");
+                // Do not set userId here, let init() handle failure
             }
         } catch (error) {
             console.error('Failed to load user profile:', error);
@@ -162,7 +151,9 @@ class DashboardManager {
             });
 
             if (response.status === 401) {
-                window.location.href = '/login?expired=true';
+                console.error("Unauthorized access to dashboard data. Session may have expired.");
+                // Optional: Show a modal or non-blocking notification
+                this.showNotification("Session expired. Please refresh or login again.", "error");
                 return;
             }
 
@@ -259,6 +250,23 @@ class DashboardManager {
             if (caloriesTrend) {
                 caloriesTrend.innerHTML = this.generateTrendIndicator('calories', calories);
             }
+        }
+
+        // Trigger AI analysis if we have data
+        // We use summary data for the context
+        if (summary.heart_rate) {
+            const hr = summary.heart_rate.avg_heart_rate;
+            // Get SpO2 from raw data if available, or simulate for now since summary structure varies
+            // For now, we pass what we have
+            this.fetchAIAdvice({
+                metrics: {
+                    heart_rate: hr,
+                    spo2: 98, // Default or fetch real if available in summary
+                    steps: summary.activity ? summary.activity.avg_steps : 0,
+                    timestamp: new Date().toISOString()
+                },
+                risk_level: this.getHeartRateStatus(hr) === 'Normal' ? 'Low' : 'Medium'
+            });
         }
     }
 
@@ -806,6 +814,71 @@ class DashboardManager {
             }
         }, 5000);
     }
+
+    async fetchAIAdvice(contextData) {
+        const recommendationList = document.getElementById('recommendationList');
+        const summaryEl = document.getElementById('healthScoreDescription');
+        const escalationEl = document.getElementById('escalationNotice');
+
+        // Safety check for elements
+        if (!recommendationList) return;
+
+        // Show loading state if not already loading
+        if (recommendationList.children.length === 0 || !recommendationList.querySelector('.loading-recommendation')) {
+            recommendationList.innerHTML = '<li class="loading-recommendation">🤖 AI is analyzing your latest vitals...</li>';
+        }
+
+        try {
+            const response = await fetch(`${API_BASE}/api/ai/health-advice`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(contextData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // Update Summary
+                if (result.summary && summaryEl) {
+                    summaryEl.textContent = result.summary;
+                }
+
+                // Update Recommendations
+                recommendationList.innerHTML = '';
+                if (result.recommended_actions && result.recommended_actions.length > 0) {
+                    result.recommended_actions.forEach(action => {
+                        const li = document.createElement('li');
+                        li.textContent = action;
+                        recommendationList.appendChild(li);
+                    });
+                } else {
+                    const li = document.createElement('li');
+                    li.textContent = "No specific actions recommended at this time.";
+                    recommendationList.appendChild(li);
+                }
+
+                // Handle Escalation
+                if (escalationEl) {
+                    if (result.escalation_notice) {
+                        escalationEl.textContent = result.escalation_notice;
+                        escalationEl.style.display = 'flex';
+                    } else {
+                        escalationEl.style.display = 'none';
+                    }
+                }
+
+            } else {
+                console.warn('AI Advice failed:', result);
+                recommendationList.innerHTML = '<li>⚠️ Automated analysis temporarily unavailable.</li>';
+            }
+        } catch (error) {
+            console.error('AI Connection error:', error);
+            recommendationList.innerHTML = '<li>⚠️ Connection error retrieving analysis.</li>';
+        }
+    }
+
 
     startAutoRefresh() {
         // Refresh every 5 minutes

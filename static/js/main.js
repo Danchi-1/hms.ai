@@ -293,6 +293,83 @@ class HMSApp {
             healthStatusEl.textContent = data.status;
             healthStatusEl.className = `status-indicator status-${data.status.toLowerCase()}`;
         }
+
+        // Trigger AI analysis with the new metrics
+        if (data.heartRate && data.bloodOxygen) {
+            this.fetchAIAdvice({
+                metrics: {
+                    heart_rate: data.heartRate,
+                    spo2: data.bloodOxygen,
+                    timestamp: new Date().toISOString()
+                },
+                risk_level: data.status || 'Unknown'
+            });
+        }
+    }
+
+    async fetchAIAdvice(contextData) {
+        const recommendationList = document.getElementById('recommendationList');
+        const summaryEl = document.getElementById('healthScoreDescription');
+        const escalationEl = document.getElementById('escalationNotice');
+
+        // Show loading state if not already loading
+        if (recommendationList.children.length === 0 || !recommendationList.querySelector('.loading-recommendation')) {
+            recommendationList.innerHTML = '<li class="loading-recommendation">🤖 AI is analyzing your latest vitals...</li>';
+        }
+
+        try {
+            const response = await fetch(`${API_BASE}/api/ai/health-advice`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(contextData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // Update Summary
+                if (result.summary) {
+                    summaryEl.textContent = result.summary;
+                }
+
+                // Update Recommendations
+                recommendationList.innerHTML = '';
+                if (result.recommended_actions && result.recommended_actions.length > 0) {
+                    result.recommended_actions.forEach(action => {
+                        const li = document.createElement('li');
+                        li.textContent = action;
+                        recommendationList.appendChild(li);
+                    });
+                } else {
+                    const li = document.createElement('li');
+                    li.textContent = "No specific actions recommended at this time.";
+                    recommendationList.appendChild(li);
+                }
+
+                // Handle Escalation
+                if (result.escalation_notice) {
+                    escalationEl.textContent = result.escalation_notice;
+                    escalationEl.style.display = 'flex';
+                } else {
+                    escalationEl.style.display = 'none';
+                }
+
+                // Observations could go to score breakdown (optional enhancement)
+                const breakdownEl = document.getElementById('scoreBreakdown');
+                if (breakdownEl && result.observations) {
+                    breakdownEl.innerHTML = result.observations.map(obs => `<div class="breakdown-item">• ${obs}</div>`).join('');
+                }
+
+            } else {
+                console.warn('AI Advice failed:', result);
+                recommendationList.innerHTML = '<li>⚠️ automated analysis temporarily unavailable.</li>';
+            }
+        } catch (error) {
+            console.error('AI Connection error:', error);
+            recommendationList.innerHTML = '<li>⚠️ Connection error retrieving analysis.</li>';
+        }
     }
 
     async startDataCollection() {

@@ -16,6 +16,7 @@ from api.auth import auth_bp
 from api.predict import predict_bp
 from api.wearable import wearable_bp
 from api.dashboard import dashboard_bp
+from api.ai_advice import ai_bp
 
 # Initialize background services
 background_manager = BackgroundServiceManager()
@@ -46,6 +47,7 @@ app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(predict_bp, url_prefix='/api/predict')
 app.register_blueprint(wearable_bp, url_prefix='/api/wearable')
 app.register_blueprint(dashboard_bp, url_prefix='/api/dashboard')
+app.register_blueprint(ai_bp, url_prefix='/api/ai')
 
 # ---------- ROUTES ----------
 
