@@ -6,6 +6,15 @@ import os
 class DatabaseManager:
     def __init__(self, db_path='data/sqlite.db'):
         self.db_path = db_path
+        
+        # Ensure database directory exists
+        db_dir = os.path.dirname(self.db_path)
+        if db_dir and not os.path.exists(db_dir):
+            try:
+                os.makedirs(db_dir)
+            except OSError as e:
+                print(f"Error creating database directory: {e}")
+                
         self.init_database()
 
     def get_connection(self) -> sqlite3.Connection:

@@ -57,7 +57,12 @@ class BLEHealthMonitor:
         """
         logger.info(f"Scanning for BLE health devices for {duration} seconds...")
         
-        devices = await BleakScanner.discover(timeout=duration)
+        try:
+            devices = await BleakScanner.discover(timeout=duration)
+        except (Exception, OSError) as e:
+            logger.warning(f"Bluetooth scanning failed (likely no hardware): {e}")
+            return []
+
         health_devices = []
         
         for device in devices:
