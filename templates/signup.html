@@ -11,52 +11,58 @@
 </head>
 
 <body>
-    <!-- Loading Spinner -->
+    <!-- Premium Loading Spinner -->
     <div class="loading-spinner" id="loadingSpinner">
         <div class="spinner"></div>
-        <!-- <div class="head-hero-visual">
-            <div class="head-hero-image pulse">
-                <i class="fas fa-heartbeat"></i>
-            </div>
-        </div> -->
     </div>
 
     <div class="auth-page">
+        <!-- Floating Ambient Elements -->
+        <div class="ambient-light"></div>
+        
+        <a href="{{ url_for('home') }}" class="home-button">
+            <i class="fas fa-arrow-left"></i> Back to Home
+        </a>
+
         <div class="auth-container">
             <div class="auth-header">
-                <h1>hms_AI</h1>
-                <p>Create your account to start monitoring your health</p>
+                <h1>Hub.ai</h1>
+                <p>Join the future of personal health monitoring</p>
             </div>
-
-            <a href="{{ url_for('home') }}" class="home-button">
-                <i class="fas fa-home"></i> Home
-            </a>
 
             <div class="auth-tabs">
                 <a href="{{ url_for('login_page') }}" class="auth-tab">Login</a>
-                <button class="auth-tab active" id="signupTab">Sign Up</button>
+                <span class="auth-tab active">Sign Up</span>
             </div>
 
             <form class="auth-form active" id="signupForm">
                 <div class="form-group">
                     <label class="form-label" for="username">Username</label>
                     <input type="text" class="form-input" id="username" name="name" required
-                        placeholder="Letters, numbers, underscores only">
+                        placeholder="Choose a unique handle">
                 </div>
 
                 <div class="form-group">
                     <label class="form-label" for="email">Email Address</label>
-                    <input type="email" class="form-input" id="email" name="email" required>
+                    <input type="email" class="form-input" id="email" name="email" required
+                        placeholder="name@example.com">
                 </div>
 
                 <div class="form-group">
                     <label class="form-label" for="password">Password</label>
-                    <input type="password" class="form-input" id="password" name="password" required>
+                    <input type="password" class="form-input" id="password" name="password" required
+                        placeholder="Min. 8 characters">
                 </div>
 
                 <div class="form-group">
                     <label class="form-label" for="confirmPassword">Confirm Password</label>
-                    <input type="password" class="form-input" id="confirmPassword" name="confirmPassword" required>
+                    <input type="password" class="form-input" id="confirmPassword" name="confirmPassword" required
+                        placeholder="Re-enter your password">
+                    <!-- Real-time Sync Indicator -->
+                    <div class="password-match-indicator" id="matchIndicator">
+                        <i class="fas fa-check-circle match-success" style="display: none;"></i>
+                        <i class="fas fa-times-circle match-error" style="display: none;"></i>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -89,24 +95,78 @@
                     <label class="checkbox-container">
                         <input type="checkbox" id="termsAccepted" name="termsAccepted" required>
                         <span class="checkmark"></span>
-                        I agree to the <a href="#" class="terms-link">Terms of Service</a> and <a href="#"
-                            class="terms-link">Privacy Policy</a>
+                        <span>I agree to the <a href="#" class="terms-link">Terms</a> & <a href="#" class="terms-link">Privacy Policy</a></span>
                     </label>
                 </div>
 
                 <button type="submit" class="auth-button" id="signupBtn">
-                    Create Account
+                    <span class="btn-text">Create Account</span>
                 </button>
             </form>
 
             <div class="auth-footer">
-                <p>Already have an account? <a href="{{ url_for('login_page') }}" class="auth-link">Login here</a></p>
+                <p>Already have an account? <a href="{{ url_for('login_page') }}" class="auth-link">Log in</a></p>
             </div>
         </div>
     </div>
 
+    <!-- Main JS for heavy lifting -->
     <script src="{{ url_for('static', filename='js/main.js') }}?v=3.0"></script>
 
-</body>
+    <!-- Premium Interactions Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const passwordInput = document.getElementById('password');
+            const confirmInput = document.getElementById('confirmPassword');
+            const matchIndicator = document.getElementById('matchIndicator');
+            const successIcon = matchIndicator.querySelector('.match-success');
+            const errorIcon = matchIndicator.querySelector('.match-error');
 
+            function updateMatchStatus() {
+                const pass = passwordInput.value;
+                const confirm = confirmInput.value;
+
+                if (!confirm) {
+                    matchIndicator.classList.remove('visible');
+                    confirmInput.classList.remove('valid', 'invalid');
+                    return;
+                }
+
+                matchIndicator.classList.add('visible');
+
+                if (pass === confirm && pass.length > 0) {
+                    // Match!
+                    confirmInput.classList.add('valid');
+                    confirmInput.classList.remove('invalid');
+                    successIcon.style.display = 'block';
+                    errorIcon.style.display = 'none';
+                    
+                    // Premium "Sync" visual effect
+                    confirmInput.style.transform = 'scale(1.02)';
+                    setTimeout(() => confirmInput.style.transform = 'scale(1)', 200);
+                } else {
+                    // No Match
+                    confirmInput.classList.add('invalid');
+                    confirmInput.classList.remove('valid');
+                    successIcon.style.display = 'none';
+                    errorIcon.style.display = 'block';
+                }
+            }
+
+            // Listen on both to ensure sync either way
+            passwordInput.addEventListener('input', updateMatchStatus);
+            confirmInput.addEventListener('input', updateMatchStatus);
+
+            // Button Loading Animation Hook
+            const form = document.getElementById('signupForm');
+            const btn = document.getElementById('signupBtn');
+            
+            form.addEventListener('submit', (e) => {
+                if (!form.checkValidity()) return;
+                // Add loading class to button which handles spinner via CSS
+                btn.classList.add('loading');
+            });
+        });
+    </script>
+</body>
 </html>
