@@ -45,66 +45,98 @@ class BLEHealthMonitor:
         self.scan_thread = None
         self.monitor_thread = None
         
-    async def scan_for_devices(self, duration: int = 10) -> List[Dict]:
+    async def scan_for_devices(self, duration: int = 10, filter_strict: bool = True) -> List[Dict]:
         """
         Scan for BLE health devices
         
         Args:
             duration: Scan duration in seconds
+            filter_strict: If True, only return devices matching specific health keywords or services
             
         Returns:
             List of discovered health devices
         """
-        logger.info(f"Scanning for BLE health devices for {duration} seconds...")
+        logger.info(f"Scanning for BLE health devices for {duration} seconds (strict_mode={filter_strict})...")
         
-        devices = await BleakScanner.discover(timeout=duration)
+        # We need advertisement data to utilize UUID filtering effectively without connecting
+        # returning_adv=True returns a dict of {address: (device, advertisement_data)}
+        devices_dict = await BleakScanner.discover(timeout=duration, return_adv=True)
         health_devices = []
         
-        for device in devices:
-            if device.name and self._is_health_device(device):
+        for address, (device, adv_data) in devices_dict.items():
+            if self._is_health_device(device, adv_data, filter_strict):
                 device_info = {
-                    'name': device.name,
+                    'name': device.name or "Unknown Device",
                     'address': device.address,
-                    'rssi': device.rssi, # type: ignore[attr-defined]
-                    'services': [],
-                    'device_type': self._identify_device_type(device),
+                    'rssi': device.rssi,
+                    'services': list(adv_data.service_uuids) if adv_data.service_uuids else [],
+                    'device_type': self._identify_device_type(device, adv_data),
                     'discovered_at': datetime.now().isoformat()
                 }
                 
-                # Try to get more detailed info
-                try:
-                    async with BleakClient(device.address) as client:
-                        services = await client.get_services() # type: ignore[attr-defined]
-                        device_info['services'] = [str(service.uuid) for service in services]
-                except Exception as e:
-                    logger.warning(f"Could not connect to {device.name}: {e}")
+                # Note: We don't connect here to get services as it's slow and disruptive during scan
+                # We rely on advertised services
                 
                 health_devices.append(device_info)
-                logger.info(f"Found health device: {device.name} ({device.address})")
+                logger.info(f"Found health device: {device_info['name']} ({device.address})")
+            else:
+                logger.debug(f"Skipping non-health device: {device.name} ({device.address})")
         
         # Sort by RSSI (descending) - strongest signal first
         health_devices.sort(key=lambda x: x.get('rssi', -100), reverse=True)
         return health_devices
     
-    def _is_health_device(self, device) -> bool:
-        """Check if device is a health/fitness device"""
-        if not device.name:
-            return False
-            
-        # Check by name patterns
-        health_keywords = [
-            'heart', 'polar', 'garmin', 'fitbit', 'apple watch',
-            'samsung', 'withings', 'omron', 'scale', 'blood pressure',
-            'glucose', 'pulse', 'fitness', 'tracker', 'band'
-        ]
+    def _is_health_device(self, device, adv_data, strict: bool = True) -> bool:
+        """
+        Check if device is a health/fitness device
         
-        device_name_lower = device.name.lower()
-        return any(keyword in device_name_lower for keyword in health_keywords)
+        Args:
+            device: BLEDevice object
+            adv_data: AdvertisementData object
+            strict: If True, enforces strict name/UUID matching
+        """
+        # If strict mode is off, accept any device with a name
+        if not strict:
+            return True if device.name else False
+            
+        # 1. Check Service UUIDs (Strongest indicator)
+        if adv_data.service_uuids:
+            for uuid in adv_data.service_uuids:
+                if str(uuid) in self.HEALTH_SERVICES.values():
+                    return True
+                    
+        # 2. Check Name Patterns
+        if device.name:
+            health_keywords = [
+                'heart', 'polar', 'garmin', 'fitbit', 'apple',
+                'samsung', 'withings', 'omron', 'scale', 'blood',
+                'glucose', 'pulse', 'fitness', 'tracker', 'band',
+                'watch', 'mi', 'honor', 'huawei', 'amazfit', 'ring',
+                'oura', 'whoop', 'smart'
+            ]
+            
+            device_name_lower = device.name.lower()
+            return any(keyword in device_name_lower for keyword in health_keywords)
+            
+        return False
     
-    def _identify_device_type(self, device) -> str:
+    def _identify_device_type(self, device, adv_data=None) -> str:
         """Identify the type of health device"""
+        
+        # Check Service UUIDs first if available
+        if adv_data and adv_data.service_uuids:
+            uuids = [str(u) for u in adv_data.service_uuids]
+            if self.HEALTH_SERVICES['heart_rate'] in uuids:
+                return 'heart_rate_monitor'
+            if self.HEALTH_SERVICES['weight_scale'] in uuids or self.HEALTH_SERVICES['body_composition'] in uuids:
+                return 'weight_scale'
+            if self.HEALTH_SERVICES['blood_pressure'] in uuids:
+                return 'blood_pressure_monitor'
+            if self.HEALTH_SERVICES['glucose'] in uuids:
+                return 'glucose_meter'
+
         if not device.name:
-            return 'unknown'
+            return 'unknown_health_device'
             
         name_lower = device.name.lower()
         
@@ -116,7 +148,7 @@ class BLEHealthMonitor:
             return 'blood_pressure_monitor'
         elif any(word in name_lower for word in ['glucose', 'sugar', 'diabetes']):
             return 'glucose_meter'
-        elif any(word in name_lower for word in ['fitbit', 'garmin', 'tracker', 'band', 'watch']):
+        elif any(word in name_lower for word in ['fitbit', 'garmin', 'tracker', 'band', 'watch', 'ring']):
             return 'fitness_tracker'
         else:
             return 'health_device'

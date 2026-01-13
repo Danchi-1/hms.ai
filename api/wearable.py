@@ -33,8 +33,8 @@ def get_devices():
         # Initialize BLE scanner
         ble_scanner = BLEHealthMonitor()
         
-        # Get available devices
-        devices = ble_scanner.get_connected_devices()
+        # Scan for devices (allow non-health devices for visibility in manual list)
+        devices = asyncio.run(ble_scanner.scan_for_devices(duration=5, filter_strict=False))
         
         return jsonify({
             'devices': devices,
