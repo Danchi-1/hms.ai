@@ -35,7 +35,7 @@
 
                     {% if session.get('user_id') %}
                     <li>
-                        <a href="{{ url_for('dashboard.dashboard') }}" class="nav-profile-chip">
+                        <a href="{{ url_for('dashboard_page') }}" class="nav-profile-chip">
                             <div class="nav-avatar">{{ session.get('username')[0].upper() if session.get('username')
                                 else 'U' }}</div>
                             <span class="nav-username">{{ session.get('username') }}</span>
