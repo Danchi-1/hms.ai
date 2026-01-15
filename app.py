@@ -106,6 +106,16 @@ def cleanup(error):
     if error:
         print(f"Request error: {error}")
 
+# DEBUG: Temporary error handler to see 500 details
+import traceback
+@app.errorhandler(500)
+@app.errorhandler(Exception)
+def handle_error(e):
+    # Only for fatal errors that cause 500
+    track = traceback.format_exc()
+    print(f"CRITICAL ERROR: {e}\n{track}")
+    return f"<h1>Internal Server Error (Debug Mode)</h1><pre>{e}\n\n{track}</pre>", 500
+
 # ---------- ENTRY POINT ----------
 
 if __name__ == '__main__':
