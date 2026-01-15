@@ -19,7 +19,11 @@ from api.dashboard import dashboard_bp
 from api.ai_advice import ai_bp
 
 # Initialize background services
-background_manager = BackgroundServiceManager()
+try:
+    background_manager = BackgroundServiceManager()
+except Exception as e:
+    print(f"Warning: Failed to initialize background services: {e}")
+    background_manager = None
 
 # Initialize Flask app
 app = Flask(__name__, 
@@ -84,7 +88,7 @@ def health_check():
         'status': 'ok',
         'database': 'connected',
         'services': {
-            'running': background_manager.is_running
+            'running': background_manager.is_running if background_manager else False
         }
     }
 
@@ -94,7 +98,8 @@ def health_check():
 # But for local dev/demo, we can start services on first request or main
 
 def start_services():
-    background_manager.start_services()
+    if background_manager:
+        background_manager.start_services()
 
 @app.teardown_appcontext
 def cleanup(error):

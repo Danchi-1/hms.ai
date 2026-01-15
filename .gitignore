@@ -53,6 +53,5 @@ hms.ai.egg-info/
 Thumbs.db
 
 # Deployment
-Procfile
 testing.py
 frontend/indexa.html
