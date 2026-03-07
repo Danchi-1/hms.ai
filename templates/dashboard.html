@@ -4,45 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - hms_AI Health Monitoring</title>
+    <title>Dashboard — hms_AI Health Monitoring</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
-        .escalation-notice {
-            margin-top: 15px;
-            padding: 12px;
-            background-color: #fee2e2;
-            border: 1px solid #ef4444;
-            border-radius: 8px;
-            color: #b91c1c;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            animation: pulse-red 2s infinite;
-        }
-
-        .escalation-notice::before {
-            content: "⚠️";
-        }
-
-        @keyframes pulse-red {
-            0% {
-                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
-            }
-
-            70% {
-                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
-            }
-
-            100% {
-                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
-            }
+        /* Inline override for chart dark mode */
+        canvas {
+            display: block;
         }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
 
 <body>
@@ -53,13 +27,12 @@
     </div>
 
     <div class="dashboard-page" id="dashboardPage">
-        <!-- Dashboard Header -->
-        <!-- Dashboard Header -->
+        <!-- ===== DASHBOARD HEADER ===== -->
         <div class="dashboard-header">
             <div class="container">
                 <div class="dashboard-nav">
                     <div class="nav-left">
-                        <button class="mobile-menu-toggle" id="mobileMenuBtn">
+                        <button class="mobile-menu-toggle" id="mobileMenuBtn" aria-label="Menu">
                             <i class="fas fa-bars"></i>
                         </button>
                         <div class="dashboard-logo">hms_AI</div>
@@ -69,9 +42,9 @@
                         <a href="{{ url_for('home') }}" class="home-button">
                             <i class="fas fa-home"></i> Home
                         </a>
-                        <!-- Mobile-only logout that appears inside menu -->
-                        <button class="logout-btn mobile-only"
-                            onclick="window.dashboardManager.logout()">Logout</button>
+                        <button class="logout-btn mobile-only" onclick="window.dashboardManager.logout()">
+                            Logout
+                        </button>
                     </div>
 
                     <div class="dashboard-user">
@@ -88,26 +61,33 @@
             </div>
         </div>
 
-        <!-- Dashboard Content -->
+        <!-- ===== DASHBOARD CONTENT ===== -->
         <div class="dashboard-content">
             <div class="container">
+
+                <!-- Welcome Strip -->
                 <div class="dashboard-welcome">
-                    <h1>Welcome back, <span id="welcomeUserName">Loading...</span>!</h1>
-                    <p id="welcomeMessage">Loading your health overview...</p>
+                    <div>
+                        <h1>Welcome back, <span id="welcomeUserName">Loading...</span>!</h1>
+                        <p id="welcomeMessage">Loading your health overview...</p>
+                    </div>
                     <div class="last-updated">
                         Last updated: <span id="lastUpdated">Never</span>
-                        <button id="refreshBtn" class="refresh-btn">Refresh</button>
+                        <button id="refreshBtn" class="refresh-btn">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
                     </div>
                 </div>
 
-                <!-- Health Metrics Grid -->
+                <!-- ===== HEALTH METRICS GRID ===== -->
                 <div class="dashboard-grid">
+
                     <!-- Real-time Health Data -->
                     <div class="dashboard-card" id="healthDataCard">
                         <div class="card-header">
                             <h3 class="card-title">Real-time Health Data</h3>
                             <div class="card-icon"
-                                style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);">
+                                style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
                                 ❤️
                             </div>
                             <div class="connection-status" id="connectionStatus">
@@ -171,15 +151,17 @@
                             <div class="recommendations">
                                 <h4>AI Recommendations</h4>
                                 <ul class="recommendation-list" id="recommendationList">
-                                    <li class="loading-recommendation">🤖 Analyzing your data to provide personalized
-                                        recommendations...</li>
+                                    <li class="loading-recommendation">
+                                        <span class="rec-icon">🤖</span>
+                                        Analyzing your data to provide personalized recommendations...
+                                    </li>
                                 </ul>
                                 <div id="escalationNotice" class="escalation-notice" style="display: none;"></div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Sleep Tracking -->
+                    <!-- Sleep Analysis -->
                     <div class="dashboard-card" id="sleepCard">
                         <div class="card-header">
                             <h3 class="card-title">Sleep Analysis</h3>
@@ -202,11 +184,11 @@
                             </div>
                         </div>
                         <div class="sleep-chart">
-                            <canvas id="sleepChart" width="400" height="200"></canvas>
+                            <canvas id="sleepChart" width="400" height="180"></canvas>
                         </div>
                     </div>
 
-                    <!-- Vital Signs Monitoring -->
+                    <!-- Vital Signs -->
                     <div class="dashboard-card" id="vitalSignsCard">
                         <div class="card-header">
                             <h3 class="card-title">Vital Signs</h3>
@@ -235,12 +217,12 @@
                         </div>
                     </div>
 
-                    <!-- Device Status -->
+                    <!-- Connected Devices -->
                     <div class="dashboard-card" id="deviceStatusCard">
                         <div class="card-header">
                             <h3 class="card-title">Connected Devices</h3>
                             <div class="card-icon"
-                                style="background: linear-gradient(135deg, #38b2ac 0%, #319795 100%);">
+                                style="background: linear-gradient(135deg, #0d9488 0%, #059669 100%);">
                                 ⌚
                             </div>
                             <div class="device-count" id="deviceCount">0 devices</div>
@@ -248,7 +230,9 @@
                         <div class="device-info" id="deviceInfo">
                             <div class="no-devices">
                                 <p>No devices connected</p>
-                                <button class="scan-devices-btn" id="scanDevicesBtn">🔍 Scan for Devices</button>
+                                <button class="scan-devices-btn" id="scanDevicesBtn">
+                                    <i class="fas fa-search"></i> Scan for Devices
+                                </button>
                                 <div class="devices-list" id="devicesList"></div>
                             </div>
                         </div>
@@ -265,20 +249,25 @@
                         </div>
                         <div class="action-buttons">
                             <button class="action-btn btn-primary" id="startWorkout">
-                                <i class="fas fa-running fa-lg"></i> Start Workout
+                                <i class="fas fa-running fa-lg"></i>
+                                Start Workout
                             </button>
                             <button class="action-btn btn-secondary" id="logMedicine">
-                                <i class="fas fa-pills fa-lg"></i> Log Medicine
+                                <i class="fas fa-pills fa-lg"></i>
+                                Log Medicine
                             </button>
-                            <button class="action-btn scan-devices-btn btn-success" id="emergencyContact">
-                                <i class="fas fa-phone-alt fa-lg"></i> Emergency
+                            <button class="action-btn btn-success" id="emergencyContact">
+                                <i class="fas fa-phone-alt fa-lg"></i>
+                                Emergency
                             </button>
-                            <button class="action-btn scan-devices-btn btn-info" id="exportData">
-                                <i class="fas fa-file-export fa-lg"></i> Export Data
+                            <button class="action-btn btn-info" id="exportData">
+                                <i class="fas fa-file-export fa-lg"></i>
+                                Export Data
                             </button>
                         </div>
                     </div>
-                </div>
+
+                </div><!-- /dashboard-grid -->
 
                 <!-- Error Messages -->
                 <div class="error-message" id="errorMessage" style="display: none;">
@@ -288,6 +277,7 @@
                         <button id="retryBtn" class="retry-btn">Retry</button>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -295,8 +285,7 @@
     <!-- Notification System -->
     <div id="notificationContainer" class="notification-container"></div>
 
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=3.0"></script>
-    <!-- <script src="js/api.js"></script> -->
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=4.0"></script>
 </body>
 
 </html>

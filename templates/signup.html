@@ -4,116 +4,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - hms_AI Health Monitoring</title>
+    <title>Sign Up — hms_AI Health Monitoring</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-    <!-- Premium Loading Spinner -->
+    <!-- Loading Spinner -->
     <div class="loading-spinner" id="loadingSpinner">
         <div class="spinner"></div>
     </div>
 
     <div class="auth-page">
-        <!-- Floating Ambient Elements -->
-        <div class="ambient-light"></div>
-        
-        <a href="{{ url_for('home') }}" class="home-button">
-            <i class="fas fa-arrow-left"></i> Back to Home
-        </a>
-
-        <div class="auth-container">
-            <div class="auth-header">
-                <h1>Hub.ai</h1>
-                <p>Join the future of personal health monitoring</p>
+        <!-- ===== LEFT PANEL ===== -->
+        <div class="auth-left">
+            <div class="auth-left-brand">
+                <a href="{{ url_for('home') }}" class="logo">hms_AI</a>
+                <p>AI-Powered Health Monitoring</p>
             </div>
 
-            <div class="auth-tabs">
-                <a href="{{ url_for('login_page') }}" class="auth-tab">Login</a>
-                <span class="auth-tab active">Sign Up</span>
+            <div class="auth-left-visual">
+                <div class="auth-icon-ring">
+                    <i class="fas fa-user-plus"
+                        style="background: var(--grad-brand); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;"></i>
+                </div>
+                <div class="auth-tagline">
+                    <h2>Join the future.</h2>
+                    <p>Start monitoring your health with AI-powered insights from your wearable device, all in one
+                        place.</p>
+                </div>
             </div>
 
-            <form class="auth-form active" id="signupForm">
-                <div class="form-group">
-                    <label class="form-label" for="username">Username</label>
-                    <input type="text" class="form-input" id="username" name="name" required
-                        placeholder="Choose a unique handle">
+            <div class="auth-left-stats">
+                <div class="auth-stat-pill">
+                    <strong>Free</strong>
+                    <span>To Get Started</span>
+                </div>
+                <div class="auth-stat-pill">
+                    <strong>2 min</strong>
+                    <span>Setup Time</span>
+                </div>
+                <div class="auth-stat-pill">
+                    <strong>50+</strong>
+                    <span>Devices</span>
+                </div>
+                <div class="auth-stat-pill">
+                    <strong>24/7</strong>
+                    <span>AI Monitoring</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== RIGHT PANEL ===== -->
+        <div class="auth-right">
+            <a href="{{ url_for('home') }}" class="home-button">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+
+            <div class="auth-container">
+                <div class="auth-header">
+                    <h1>Create account</h1>
+                    <p>Join the future of personal health monitoring.</p>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="email">Email Address</label>
-                    <input type="email" class="form-input" id="email" name="email" required
-                        placeholder="name@example.com">
+                <div class="auth-tabs">
+                    <a href="{{ url_for('login_page') }}" class="auth-tab">Login</a>
+                    <span class="auth-tab active">Sign Up</span>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="password">Password</label>
-                    <input type="password" class="form-input" id="password" name="password" required
-                        placeholder="Min. 8 characters">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="confirmPassword">Confirm Password</label>
-                    <input type="password" class="form-input" id="confirmPassword" name="confirmPassword" required
-                        placeholder="Re-enter your password">
-                    <!-- Real-time Sync Indicator -->
-                    <div class="password-match-indicator" id="matchIndicator">
-                        <i class="fas fa-check-circle match-success" style="display: none;"></i>
-                        <i class="fas fa-times-circle match-error" style="display: none;"></i>
+                <form class="auth-form" id="signupForm">
+                    <div class="form-group">
+                        <label class="form-label" for="username">Username</label>
+                        <input type="text" class="form-input" id="username" name="name" required
+                            placeholder="Choose a unique handle" autocomplete="username">
                     </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email Address</label>
+                        <input type="email" class="form-input" id="email" name="email" required
+                            placeholder="name@example.com" autocomplete="email">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="password">Password</label>
+                        <input type="password" class="form-input" id="password" name="password" required
+                            placeholder="Min. 8 characters" autocomplete="new-password">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="confirmPassword">Confirm Password</label>
+                        <input type="password" class="form-input" id="confirmPassword" name="confirmPassword" required
+                            placeholder="Re-enter your password" autocomplete="new-password">
+                        <div class="password-match-indicator" id="matchIndicator">
+                            <i class="fas fa-check-circle match-success" style="display: none;"></i>
+                            <i class="fas fa-times-circle match-error" style="display: none;"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="age">Age</label>
+                        <input type="number" class="form-input" id="age" name="age" min="1" max="120" required
+                            placeholder="Your age">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="gender">Gender</label>
+                        <select class="form-input" id="gender" name="gender" required>
+                            <option value="">Select Gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="wearableDevice">Wearable Device (Optional)</label>
+                        <select class="form-input" id="wearableDevice" name="wearableDevice">
+                            <option value="">Select Device</option>
+                            <option value="apple-watch">Apple Watch</option>
+                            <option value="fitbit">Fitbit</option>
+                            <option value="garmin">Garmin</option>
+                            <option value="samsung-galaxy">Samsung Galaxy Watch</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="animation-delay: 0.4s;">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="termsAccepted" name="termsAccepted" required>
+                            <span class="checkmark"></span>
+                            <span>I agree to the <a href="#" class="terms-link">Terms</a> &amp; <a href="#"
+                                    class="terms-link">Privacy Policy</a></span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="auth-button" id="signupBtn">
+                        <span class="btn-text">Create Account</span>
+                    </button>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Already have an account? <a href="{{ url_for('login_page') }}" class="auth-link">Log in</a></p>
                 </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="age">Age</label>
-                    <input type="number" class="form-input" id="age" name="age" min="1" max="120" required>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="gender">Gender</label>
-                    <select class="form-input" id="gender" name="gender" required>
-                        <option value="">Select Gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="wearableDevice">Wearable Device (Optional)</label>
-                    <select class="form-input" id="wearableDevice" name="wearableDevice">
-                        <option value="">Select Device</option>
-                        <option value="apple-watch">Apple Watch</option>
-                        <option value="fitbit">Fitbit</option>
-                        <option value="garmin">Garmin</option>
-                        <option value="samsung-galaxy">Samsung Galaxy Watch</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="checkbox-container">
-                        <input type="checkbox" id="termsAccepted" name="termsAccepted" required>
-                        <span class="checkmark"></span>
-                        <span>I agree to the <a href="#" class="terms-link">Terms</a> & <a href="#" class="terms-link">Privacy Policy</a></span>
-                    </label>
-                </div>
-
-                <button type="submit" class="auth-button" id="signupBtn">
-                    <span class="btn-text">Create Account</span>
-                </button>
-            </form>
-
-            <div class="auth-footer">
-                <p>Already have an account? <a href="{{ url_for('login_page') }}" class="auth-link">Log in</a></p>
             </div>
         </div>
     </div>
 
-    <!-- Main JS for heavy lifting -->
-    <script src="{{ url_for('static', filename='js/main.js') }}?v=3.0"></script>
-
-    <!-- Premium Interactions Script -->
+    <script src="{{ url_for('static', filename='js/main.js') }}?v=4.0"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const passwordInput = document.getElementById('password');
@@ -125,27 +164,20 @@
             function updateMatchStatus() {
                 const pass = passwordInput.value;
                 const confirm = confirmInput.value;
-
                 if (!confirm) {
                     matchIndicator.classList.remove('visible');
                     confirmInput.classList.remove('valid', 'invalid');
                     return;
                 }
-
                 matchIndicator.classList.add('visible');
-
                 if (pass === confirm && pass.length > 0) {
-                    // Match!
                     confirmInput.classList.add('valid');
                     confirmInput.classList.remove('invalid');
                     successIcon.style.display = 'block';
                     errorIcon.style.display = 'none';
-                    
-                    // Premium "Sync" visual effect
-                    confirmInput.style.transform = 'scale(1.02)';
+                    confirmInput.style.transform = 'scale(1.01)';
                     setTimeout(() => confirmInput.style.transform = 'scale(1)', 200);
                 } else {
-                    // No Match
                     confirmInput.classList.add('invalid');
                     confirmInput.classList.remove('valid');
                     successIcon.style.display = 'none';
@@ -153,20 +185,17 @@
                 }
             }
 
-            // Listen on both to ensure sync either way
             passwordInput.addEventListener('input', updateMatchStatus);
             confirmInput.addEventListener('input', updateMatchStatus);
 
-            // Button Loading Animation Hook
             const form = document.getElementById('signupForm');
             const btn = document.getElementById('signupBtn');
-            
             form.addEventListener('submit', (e) => {
                 if (!form.checkValidity()) return;
-                // Add loading class to button which handles spinner via CSS
                 btn.classList.add('loading');
             });
         });
     </script>
 </body>
+
 </html>

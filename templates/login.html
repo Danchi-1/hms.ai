@@ -4,77 +4,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - hms_AI Health Monitoring</title>
+    <title>Login — hms_AI Health Monitoring</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-    <!-- Premium Loading Spinner -->
+    <!-- Loading Spinner -->
     <div class="loading-spinner" id="loadingSpinner">
         <div class="spinner"></div>
     </div>
 
     <div class="auth-page">
-        <!-- Floating Ambient Elements -->
-        <div class="ambient-light"></div>
-
-        <a href="{{ url_for('home') }}" class="home-button">
-            <i class="fas fa-arrow-left"></i> Back to Home
-        </a>
-
-        <div class="auth-container">
-            <div class="auth-header">
-                <h1>Hub.ai</h1>
-                <p>Welcome back! Log in to continue monitoring your health</p>
+        <!-- ===== LEFT PANEL ===== -->
+        <div class="auth-left">
+            <div class="auth-left-brand">
+                <a href="{{ url_for('home') }}" class="logo">hms_AI</a>
+                <p>AI-Powered Health Monitoring</p>
             </div>
 
-            <div class="auth-tabs">
-                <span class="auth-tab active">Login</span>
-                <a href="{{ url_for('signup_page') }}" class="auth-tab">Sign Up</a>
+            <div class="auth-left-visual">
+                <div class="auth-icon-ring">
+                    <i class="fas fa-heartbeat"
+                        style="background: var(--grad-brand); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;"></i>
+                </div>
+                <div class="auth-tagline">
+                    <h2>Welcome back.</h2>
+                    <p>Your health data is waiting. Log in to view your real-time insights and AI recommendations.</p>
+                </div>
             </div>
 
-            <form class="auth-form active" id="loginForm">
-                <div class="form-group">
-                    <label class="form-label" for="email">Email Address</label>
-                    <input type="email" class="form-input" id="email" name="email" required
-                        placeholder="name@example.com">
+            <div class="auth-left-stats">
+                <div class="auth-stat-pill">
+                    <strong>10K+</strong>
+                    <span>Active Users</span>
+                </div>
+                <div class="auth-stat-pill">
+                    <strong>99.9%</strong>
+                    <span>Uptime</span>
+                </div>
+                <div class="auth-stat-pill">
+                    <strong>50+</strong>
+                    <span>Devices</span>
+                </div>
+                <div class="auth-stat-pill">
+                    <strong>4.9★</strong>
+                    <span>App Rating</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== RIGHT PANEL ===== -->
+        <div class="auth-right">
+            <a href="{{ url_for('home') }}" class="home-button">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+
+            <div class="auth-container">
+                <div class="auth-header">
+                    <h1>Sign in</h1>
+                    <p>Welcome back! Log in to continue monitoring your health.</p>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="password">Password</label>
-                    <input type="password" class="form-input" id="password" name="password" required
-                        placeholder="Enter your password">
+                <div class="auth-tabs">
+                    <span class="auth-tab active">Login</span>
+                    <a href="{{ url_for('signup_page') }}" class="auth-tab">Sign Up</a>
                 </div>
 
-                <div class="form-group" style="text-align: right; margin-top: -10px;">
-                    <a href="#" class="terms-link" style="font-size: 0.9rem;">Forgot Password?</a>
+                <form class="auth-form" id="loginForm">
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email Address</label>
+                        <input type="email" class="form-input" id="email" name="email" required
+                            placeholder="name@example.com" autocomplete="email">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="password">Password</label>
+                        <input type="password" class="form-input" id="password" name="password" required
+                            placeholder="Enter your password" autocomplete="current-password">
+                    </div>
+
+                    <div class="form-group"
+                        style="text-align: right; margin-top: -6px; margin-bottom: 0.5rem; opacity: 1; animation: none;">
+                        <a href="#" class="terms-link" style="font-size: 0.85rem;">Forgot Password?</a>
+                    </div>
+
+                    <button type="submit" class="auth-button" id="loginBtn">
+                        <span class="btn-text">Log In</span>
+                    </button>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Don't have an account? <a href="{{ url_for('signup_page') }}" class="auth-link">Create one
+                            here</a></p>
                 </div>
-
-                <button type="submit" class="auth-button" id="loginBtn">
-                    <span class="btn-text">Log In</span>
-                </button>
-            </form>
-
-            <div class="auth-footer">
-                <p>Don't have an account? <a href="{{ url_for('signup_page') }}" class="auth-link">Create one here</a>
-                </p>
             </div>
         </div>
     </div>
 
-    <!-- Main JS -->
-    <script src="{{ url_for('static', filename='js/main.js') }}?v=3.0"></script>
-
+    <script src="{{ url_for('static', filename='js/main.js') }}?v=4.0"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('loginForm');
             const btn = document.getElementById('loginBtn');
-
-            form.addEventListener('submit', (e) => {
-                btn.classList.add('loading');
-            });
+            form.addEventListener('submit', () => { btn.classList.add('loading'); });
         });
     </script>
 </body>

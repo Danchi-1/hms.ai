@@ -4,25 +4,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>hms_AI - Monitor Your Health Smarter with AI</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>hms_AI — Monitor Your Health Smarter with AI</title>
+    <meta name="description" content="hms_AI connects to your wearable devices to analyze your health in real-time, offering personalized insights just like having a doctor with you 24/7.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
 </head>
 
 <body>
+    <!-- Loading Screen -->
     <div class="loading-spinner" id="loadingSpinner">
-        <!-- <div class="spinner"></div> -->
         <div class="head-hero-visual">
             <div class="head-hero-image pulse">
                 <i class="fas fa-heartbeat"></i>
             </div>
         </div>
     </div>
-    <!-- Header Navigation -->
-    <header class="header">
+
+    <!-- ===== HEADER ===== -->
+    <header class="header" id="header">
         <nav class="container">
             <div class="navbar">
                 <a href="#" class="logo">hms_AI</a>
@@ -36,152 +37,228 @@
                     {% if session.get('user_id') %}
                     <li>
                         <a href="{{ url_for('dashboard_page') }}" class="nav-profile-chip">
-                            <div class="nav-avatar">{{ session.get('username')[0].upper() if session.get('username')
-                                else 'U' }}</div>
+                            <div class="nav-avatar">{{ session.get('username')[0].upper() if session.get('username') else 'U' }}</div>
                             <span class="nav-username">{{ session.get('username') }}</span>
                         </a>
                     </li>
                     {% else %}
                     <li class="mobile-auth-buttons">
                         <a href="{{ url_for('login_page') }}" class="btn btn-login">Login</a>
-                        <a href="{{ url_for('signup_page') }}" class="btn btn-signup">Sign Up</a>
+                        <a href="{{ url_for('signup_page') }}" class="btn btn-signup">Get Started</a>
                     </li>
                     {% endif %}
                 </ul>
 
-                <button class="mobile-menu-toggle" id="mobileMenuBtn">
+                <button class="mobile-menu-toggle" id="mobileMenuBtn" aria-label="Toggle menu">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
         </nav>
     </header>
 
-    <!-- Hero Section -->
+    <!-- ===== HERO — Split Panel ===== -->
     <section class="hero" id="home">
         <div class="container">
-            <div class="hero-content fade-in-up">
-                <h1>Monitor Your Health Smarter with AI</h1>
-                <p>hms_AI connects to your wearable devices to analyze your health in real-time, offering personalized
-                    insights just like having a doctor with you 24/7.</p>
-
-                <div class="hero-buttons">
-                    <a href="{{ url_for('signup_page') }}" class="btn btn-primary">Get Started</a>
-                    <a href="#how-it-works" class="btn btn-secondary">See How It Works</a>
+            <div class="hero-inner">
+                <!-- Left: Copy -->
+                <div class="hero-copy fade-in-up">
+                    <div class="hero-badge">
+                        <span></span>AI-Powered Health Monitoring
+                    </div>
+                    <h1>Your health,<br><em>intelligently</em><br>monitored.</h1>
+                    <p class="hero-desc">hms_AI connects to your wearable devices and runs real-time AI analysis on your vitals — giving you personalized insights like having a doctor on call, 24/7.</p>
+                    <div class="hero-actions">
+                        <a href="{{ url_for('signup_page') }}" class="btn btn-primary">
+                            <i class="fas fa-rocket"></i> Get Started Free
+                        </a>
+                        <a href="#how-it-works" class="btn btn-secondary">
+                            See How It Works
+                        </a>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="hero-stat">
+                            <div class="hero-stat-value">10K+</div>
+                            <div class="hero-stat-label">Active Users</div>
+                        </div>
+                        <div class="hero-stat">
+                            <div class="hero-stat-value">99.9%</div>
+                            <div class="hero-stat-label">Uptime</div>
+                        </div>
+                        <div class="hero-stat">
+                            <div class="hero-stat-value">50+</div>
+                            <div class="hero-stat-label">Devices Supported</div>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Right: Visual Health Card -->
                 <div class="hero-visual">
-                    <div class="hero-image pulse">
-                        <i class="fas fa-heartbeat"></i>
+                    <div class="hero-card-stack">
+                        <div class="hero-health-card">
+                            <div class="hcard-head">
+                                <span class="hcard-title">Live Health Monitor</span>
+                                <span class="hcard-live">Live</span>
+                            </div>
+                            <div class="hcard-metrics">
+                                <div class="hcard-metric">
+                                    <div class="hm-value">72</div>
+                                    <div class="hm-label">Heart Rate BPM</div>
+                                </div>
+                                <div class="hcard-metric">
+                                    <div class="hm-value">98%</div>
+                                    <div class="hm-label">Blood O₂</div>
+                                </div>
+                                <div class="hcard-metric">
+                                    <div class="hm-value">8,420</div>
+                                    <div class="hm-label">Steps Today</div>
+                                </div>
+                                <div class="hcard-metric">
+                                    <div class="hm-value">7.2h</div>
+                                    <div class="hm-label">Sleep Last Night</div>
+                                </div>
+                            </div>
+                            <div class="hcard-ai">
+                                <div class="hcard-ai-icon">🧠</div>
+                                <div class="hcard-ai-text"><strong>AI Analysis:</strong> Your vitals look great today. Keep up the activity level!</div>
+                            </div>
+                        </div>
+                        <!-- Floating mini card -->
+                        <div class="hero-float-card">
+                            <div class="hfc-icon">❤️</div>
+                            <div>
+                                <div class="hfc-value">85/100</div>
+                                <div class="hfc-label">Health Score</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Features Section -->
+    <!-- ===== STATS BAR ===== -->
+    <div class="stats-bar">
+        <div class="container">
+            <div class="stats-bar-inner">
+                <div class="stat-item">
+                    <i class="fas fa-shield-alt"></i>
+                    <span><strong>HIPAA</strong> Compliant</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-lock"></i>
+                    <span><strong>256-bit</strong> Encryption</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-clock"></i>
+                    <span><strong>Real-time</strong> Analysis</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-star"></i>
+                    <span><strong>4.9/5</strong> User Rating</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== FEATURES ===== -->
     <section class="features" id="features">
         <div class="container">
-            <h2 class="section-title">Why Choose hms_AI?</h2>
-            <p class="section-subtitle">Experience the future of personalized healthcare monitoring</p>
-
+            <div class="section-header center">
+                <div class="section-tag"><i class="fas fa-sparkles"></i> Features</div>
+                <h2 class="section-title">Why choose <span>hms_AI</span>?</h2>
+                <p class="section-subtitle center">Experience the future of personalized healthcare monitoring — smart, seamless, and always on.</p>
+            </div>
             <div class="features-grid">
                 <div class="feature-card fade-in-up">
                     <div class="feature-icon">
-                        <i class="fas fa-clock"></i>
+                        <i class="fas fa-bolt"></i>
                     </div>
                     <h3>Real-Time Monitoring</h3>
-                    <p>Get instant health insights as they happen. Our AI continuously analyzes your vital signs and
-                        activity patterns.</p>
+                    <p>Get instant health insights the moment they happen. Our AI continuously analyzes your vital signs and activity patterns as you live your day.</p>
                 </div>
-
                 <div class="feature-card fade-in-up">
                     <div class="feature-icon">
                         <i class="fas fa-brain"></i>
                     </div>
                     <h3>AI-Powered Analysis</h3>
-                    <p>Advanced machine learning algorithms provide personalized health recommendations based on your
-                        unique data patterns.</p>
+                    <p>Advanced machine learning models provide personalized health recommendations based on your unique biometric patterns and medical history.</p>
                 </div>
-
                 <div class="feature-card fade-in-up">
                     <div class="feature-icon">
                         <i class="fas fa-bell"></i>
                     </div>
                     <h3>Smart Alerts</h3>
-                    <p>Receive intelligent notifications about potential health concerns before they become serious
-                        issues.</p>
+                    <p>Receive intelligent notifications about potential health concerns before they escalate — so you can act early and stay ahead.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- How It Works Section -->
+    <!-- ===== HOW IT WORKS ===== -->
     <section class="how-it-works" id="how-it-works">
         <div class="container">
-            <h2 class="section-title">How It Works</h2>
-            <p class="section-subtitle">Get started with hms_AI in just three simple steps</p>
-
-            <div class="steps-grid">
+            <div class="section-header center">
+                <div class="section-tag"><i class="fas fa-map"></i> Process</div>
+                <h2 class="section-title">Up and running in <span>3 steps</span></h2>
+                <p class="section-subtitle center">Getting started with hms_AI takes minutes, not days.</p>
+            </div>
+            <div class="steps-timeline">
                 <div class="step-card fade-in-up">
                     <div class="step-number">1</div>
                     <h3>Connect Your Wearable</h3>
-                    <p>Sync your smartwatch or fitness tracker with hms_AI. We support all major brands and devices.</p>
+                    <p>Sync your smartwatch or fitness tracker with hms_AI. We support Apple Watch, Fitbit, Garmin, Samsung, and more.</p>
                 </div>
-
                 <div class="step-card fade-in-up">
                     <div class="step-number">2</div>
                     <h3>AI Analyzes Your Data</h3>
-                    <p>Our advanced AI continuously monitors and analyzes your health metrics, learning your unique
-                        patterns.</p>
+                    <p>Our advanced AI runs continuously in the background, monitoring your health metrics and learning your unique patterns.</p>
                 </div>
-
                 <div class="step-card fade-in-up">
                     <div class="step-number">3</div>
                     <h3>Get Personalized Insights</h3>
-                    <p>Receive instant advice, alerts, and recommendations tailored specifically to your health profile.
-                    </p>
+                    <p>Receive instant advice, smart alerts, and recommendations tailored specifically to your health profile and goals.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Trust Section -->
+    <!-- ===== TRUST / DEVICES ===== -->
     <section class="trust" id="about">
         <div class="container">
             <div class="trust-content">
-                <h2 class="section-title">Compatible with Your Devices</h2>
-                <p class="section-subtitle">hms_AI works seamlessly with all major wearable brands</p>
-
+                <div class="section-header center">
+                    <div class="section-tag"><i class="fas fa-plug"></i> Integrations</div>
+                    <h2 class="section-title">Works with your <span>devices</span></h2>
+                    <p class="section-subtitle center">hms_AI connects seamlessly with all major wearable brands via Bluetooth and API.</p>
+                </div>
                 <div class="devices-grid">
-                    <div class="device-logo">
-                        <i class="fab fa-apple" style="font-size: 2rem; color: var(--text-secondary);"></i>
+                    <div class="device-logo" title="Apple Watch">
+                        <i class="fab fa-apple" style="font-size:2rem;"></i>
                     </div>
-                    <div class="device-logo">
-                        <i class="fas fa-watch" style="font-size: 2rem; color: var(--text-secondary);"></i>
+                    <div class="device-logo" title="Fitbit">
+                        <i class="fas fa-heartbeat" style="font-size:2rem;"></i>
                     </div>
-                    <div class="device-logo">
-                        <i class="fas fa-mobile-alt" style="font-size: 2rem; color: var(--text-secondary);"></i>
+                    <div class="device-logo" title="Garmin">
+                        <i class="fas fa-watch" style="font-size:2rem;"></i>
                     </div>
-                    <div class="device-logo">
-                        <i class="fas fa-heartbeat" style="font-size: 2rem; color: var(--text-secondary);"></i>
+                    <div class="device-logo" title="Samsung">
+                        <i class="fas fa-mobile-alt" style="font-size:2rem;"></i>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
+    <!-- ===== FOOTER ===== -->
     <footer class="footer" id="contact">
         <div class="container">
             <div class="footer-content">
-                <div class="footer-section">
-                    <h3>hms_AI</h3>
-                    <p style="color: var(--text-secondary); margin-top: 1rem;">
-                        Revolutionizing healthcare with AI-powered monitoring and personalized insights for a healthier
-                        tomorrow.
+                <div class="footer-section footer-brand">
+                    <a href="#" class="logo">hms_AI</a>
+                    <p style="color: var(--text-3); margin-top: 1rem; font-size: 0.9rem; line-height: 1.7;">
+                        Revolutionizing healthcare with AI-powered monitoring and personalized insights for a healthier tomorrow.
                     </p>
                 </div>
-
                 <div class="footer-section">
                     <h3>Quick Links</h3>
                     <ul>
@@ -191,7 +268,6 @@
                         <li><a href="#contact">Contact</a></li>
                     </ul>
                 </div>
-
                 <div class="footer-section">
                     <h3>Support</h3>
                     <ul>
@@ -201,24 +277,27 @@
                         <li><a href="#">Contact Support</a></li>
                     </ul>
                 </div>
-
                 <div class="footer-section">
                     <h3>Contact</h3>
                     <ul>
-                        <li style="color: var(--text-secondary);">support@hms-ai.com</li>
-                        <li style="color: var(--text-secondary);">1-800-HMS-AI-24</li>
-                        <li style="color: var(--text-secondary);">Available 24/7</li>
+                        <li style="color: var(--text-3);">support@hms-ai.com</li>
+                        <li style="color: var(--text-3);">1-800-HMS-AI-24</li>
+                        <li style="color: var(--text-3);">Available 24/7</li>
                     </ul>
                 </div>
             </div>
-
             <div class="footer-bottom">
-                <p>&copy; 2025 hms_AI. All rights reserved. | Powered by Advanced AI Technology</p>
+                <p>&copy; 2026 hms_AI. All rights reserved. | Powered by Advanced AI Technology</p>
             </div>
         </div>
     </footer>
 
-    <script src="{{ url_for('static', filename='js/main.js') }}?v=3.0"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}?v=4.0"></script>
+    <script>
+        // Scroll-based header enhancement
+        window.addEventListener('scroll', () => {
+            document.getElementById('header').classList.toggle('scrolled', window.scrollY > 10);
+        });
+    </script>
 </body>
-
 </html>
