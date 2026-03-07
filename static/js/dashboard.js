@@ -406,32 +406,10 @@ class DashboardManager {
     }
 
     updateVitalSigns(rawData) {
-        // For now, show simulated vital signs since they're not in the current data structure
-        // This would be updated when actual vital signs data is available
-
-        const bloodPressure = document.getElementById('bloodPressure');
-        const bloodOxygen = document.getElementById('bloodOxygen');
-        const temperature = document.getElementById('temperature');
-
-        // Simulate realistic vital signs based on heart rate if available
-        if (rawData.heart_rate && rawData.heart_rate.length > 0) {
-            const latestHR = rawData.heart_rate[rawData.heart_rate.length - 1].heart_rate;
-
-            // Simulate blood pressure based on heart rate
-            const systolic = Math.round(120 + (latestHR - 70) * 0.5);
-            const diastolic = Math.round(80 + (latestHR - 70) * 0.3);
-
-            if (bloodPressure) bloodPressure.textContent = `${systolic}/${diastolic} mmHg`;
-
-            // Simulate other vitals
-            if (bloodOxygen) bloodOxygen.textContent = `${Math.round(97 + Math.random() * 2)}%`;
-            if (temperature) temperature.textContent = `${(98.6 + (Math.random() - 0.5) * 1).toFixed(1)}°F`;
-
-            // Update statuses
-            this.updateVitalStatus('bloodPressureStatus', this.getBloodPressureStatus(systolic, diastolic));
-            this.updateVitalStatus('bloodOxygenStatus', 'Excellent');
-            this.updateVitalStatus('temperatureStatus', 'Normal');
-        }
+        // Vitals are only updated when real data arrives via BLE (Web Bluetooth).
+        // Do not simulate — leave as '--' until the device sends actual readings.
+        // The _sendBleReading() / characteristicvaluechanged flow in scanForDevices()
+        // is the only place that should populate these fields.
     }
 
     updateVitalStatus(elementId, status) {
@@ -689,36 +667,14 @@ class DashboardManager {
     }
 
     generateDeviceList(data) {
-        const devices = [];
-
-        if (data.raw_data.heart_rate && data.raw_data.heart_rate.length > 0) {
-            devices.push({
-                name: "Fitness Tracker",
-                status: "Connected",
-                battery: Math.floor(Math.random() * 30) + 70,
-                lastSync: this.getRelativeTime(new Date(Date.now() - Math.random() * 300000))
-            });
-        }
-
-        if (data.raw_data.sleep && data.raw_data.sleep.length > 0) {
-            devices.push({
-                name: "Sleep Monitor",
-                status: "Connected",
-                battery: Math.floor(Math.random() * 40) + 60,
-                lastSync: this.getRelativeTime(new Date(Date.now() - Math.random() * 600000))
-            });
-        }
-
-        return devices;
+        // Devices are only shown after a real Web Bluetooth connection via scanForDevices().
+        // Do not generate fake device entries here.
+        return [];
     }
 
     generateTrendIndicator(metric, value) {
-        // Simulate trend based on current value (in real app, compare with historical data)
-        const trends = ['📈', '📉', '➡️'];
-        const trend = trends[Math.floor(Math.random() * trends.length)];
-        const change = (Math.random() * 10 - 5).toFixed(1);
-
-        return `<span class="trend-indicator">${trend} ${change > 0 ? '+' : ''}${change}%</span>`;
+        // No simulated trends — return empty until real historical comparison is available.
+        return '';
     }
 
     getTimeOfDay() {
@@ -778,17 +734,13 @@ class DashboardManager {
     }
 
     loadFallbackData() {
-        // Fallback disabled to show empty state as requested
-        console.log("No data available. Waiting for device connection.");
-        this.updateDashboard({
-            summary: {},
-            raw_data: {}
-        });
-        /*
-        // Load demo data when API fails
-        const fallbackData = { ... };
-        this.updateDashboard(fallbackData);
-        */
+        // Show empty/waiting state — do not populate with fake values.
+        // Metrics stay as '--' until a real BLE device connects.
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        if (welcomeMessage) {
+            welcomeMessage.textContent = 'Connect a device to start seeing your health data.';
+        }
+        console.log('No API data available. Waiting for device connection.');
     }
 
     showNotification(message, type = 'info') {
@@ -938,46 +890,218 @@ class DashboardManager {
     }
 
     async scanForDevices() {
-        // New flow: Check if device is on wrist, then connect to closest
-        if (confirm("Is your health device currently on your wrist/body?")) {
-            const scanBtn = document.getElementById('scanDevicesBtn');
-            const originalText = scanBtn ? scanBtn.innerHTML : '';
+        // ── Web Bluetooth API ──────────────────────────────────────────────
+        // Runs entirely in the browser — requests permission from the USER's
+        // own device (phone/laptop) rather than the server's Bluetooth adapter.
+        //
+        // Requirements:
+        //   • HTTPS (or localhost)
+        //   • Chrome 56+ / Edge 79+ / Opera 43+  (Firefox/Safari not supported)
+        // ──────────────────────────────────────────────────────────────────
 
-            if (scanBtn) {
-                scanBtn.disabled = true;
-                scanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Finding closest device...';
-            }
-            this.showNotification('Scanning for closest device (strongest signal)...', 'info');
+        if (!navigator.bluetooth) {
+            this.showNotification(
+                '⚠️ Web Bluetooth is not supported in this browser. ' +
+                'Please use Chrome or Edge on desktop/Android.',
+                'error'
+            );
+            return;
+        }
 
+        const scanBtn = document.getElementById('scanDevicesBtn');
+        const deviceInfo = document.getElementById('deviceInfo');
+        const deviceCount = document.getElementById('deviceCount');
+        const originalHTML = scanBtn ? scanBtn.innerHTML : '';
+
+        if (scanBtn) {
+            scanBtn.disabled = true;
+            scanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
+        }
+
+        // Standard Bluetooth GATT service UUIDs for health devices
+        const HEART_RATE_SERVICE = 0x180D;
+        const HEART_RATE_CHARACTERISTIC = 0x2A37;
+        const BATTERY_SERVICE = 0x180F;
+        const BATTERY_CHARACTERISTIC = 0x2A19;
+        const DEVICE_INFO_SERVICE = 0x180A;
+        const MANUFACTURER_CHAR = 0x2A29;
+
+        try {
+            // Step 1: Browser shows native BT device picker to user
+            this.showNotification('Select your health device from the browser prompt...', 'info');
+
+            const device = await navigator.bluetooth.requestDevice({
+                // Accept any device that advertises a heart rate OR fitness machine service
+                filters: [
+                    { services: [HEART_RATE_SERVICE] },
+                    { services: [0x1826] },          // Fitness Machine
+                    { services: [0x1810] },          // Blood Pressure
+                    { services: [0x1808] },          // Glucose
+                    { namePrefix: 'Polar' },
+                    { namePrefix: 'Garmin' },
+                    { namePrefix: 'Fitbit' },
+                    { namePrefix: 'Mi' },
+                    { namePrefix: 'Galaxy' },
+                    { namePrefix: 'Amazfit' },
+                    { namePrefix: 'WHOOP' },
+                    { namePrefix: 'Oura' },
+                ],
+                optionalServices: [
+                    HEART_RATE_SERVICE,
+                    BATTERY_SERVICE,
+                    DEVICE_INFO_SERVICE,
+                ]
+            });
+
+            this.showNotification(`Connecting to ${device.name || 'device'}...`, 'info');
+
+            // Step 2: Connect GATT server
+            const server = await device.gatt.connect();
+            this.bleDevice = device;
+            this.bleServer = server;
+
+            // Step 3: Try to read battery level
+            let batteryLevel = '--';
             try {
-                const response = await fetch(`${API_BASE}/api/wearable/connect-closest`, {
-                    method: 'POST',
-                    credentials: 'include'
+                const battService = await server.getPrimaryService(BATTERY_SERVICE);
+                const battChar = await battService.getCharacteristic(BATTERY_CHARACTERISTIC);
+                const battValue = await battChar.readValue();
+                batteryLevel = battValue.getUint8(0) + '%';
+            } catch (_) { /* device may not expose battery service */ }
+
+            // Step 4: Try to read manufacturer name
+            let manufacturer = 'Unknown';
+            try {
+                const infoService = await server.getPrimaryService(DEVICE_INFO_SERVICE);
+                const mfgChar = await infoService.getCharacteristic(MANUFACTURER_CHAR);
+                const mfgValue = await mfgChar.readValue();
+                manufacturer = new TextDecoder().decode(mfgValue);
+            } catch (_) { /* optional */ }
+
+            // Step 5: Subscribe to heart rate notifications
+            let heartRateChar = null;
+            try {
+                const hrService = await server.getPrimaryService(HEART_RATE_SERVICE);
+                heartRateChar = await hrService.getCharacteristic(HEART_RATE_CHARACTERISTIC);
+
+                heartRateChar.addEventListener('characteristicvaluechanged', (event) => {
+                    const value = event.target.value;
+                    // Parse BLE heart rate: flag byte then 8 or 16-bit value
+                    const flags = value.getUint8(0);
+                    const hr = (flags & 0x01) ? value.getUint16(1, true) : value.getUint8(1);
+
+                    // Update dashboard metric live
+                    const hrEl = document.getElementById('heartRate');
+                    if (hrEl) hrEl.textContent = hr;
+
+                    const hrStatus = document.getElementById('heartRateStatus');
+                    if (hrStatus) {
+                        hrStatus.textContent = hr < 60 ? 'Low' : hr > 100 ? 'High' : 'Normal';
+                        hrStatus.className = `status-indicator ${hr < 60 || hr > 100 ? 'status-warning' : 'status-normal'}`;
+                    }
+
+                    // Forward reading to backend to persist
+                    this._sendBleReading({ heart_rate: hr, timestamp: new Date().toISOString() });
                 });
 
-                const result = await response.json();
+                await heartRateChar.startNotifications();
+            } catch (_) { /* device might not have HR service */ }
 
-                if (response.ok) {
-                    this.showNotification(`Successfully connected to ${result.device.name} (RSSI: ${result.device.rssi}dBm)`, 'success');
-                    // Reload dashboard to show any new data
-                    setTimeout(() => this.loadDashboardData(true), 1000);
-                } else {
-                    // Show detailed error from backend
-                    const errorMsg = result.error || 'Connection failed';
-                    const detailMsg = result.message || '';
-                    console.error('Scan Error:', result);
-                    this.showNotification(`Error: ${errorMsg} ${detailMsg}`, 'error');
-                }
-            } catch (error) {
-                console.error('Network Error:', error);
-                this.showNotification('Network/Connection Error: ' + error.message, 'error');
-            } finally {
-                if (scanBtn) {
-                    scanBtn.disabled = false;
-                    scanBtn.innerHTML = originalText;
-                }
+            // Step 6: Update the device card UI
+            const deviceName = device.name || 'Health Device';
+            if (deviceInfo) {
+                deviceInfo.innerHTML = `
+                    <div class="device-item">
+                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                            <span style="font-size:1.5rem;">⌚</span>
+                            <div>
+                                <div style="font-weight:700;color:var(--text-1);">${deviceName}</div>
+                                <div style="font-size:0.75rem;color:var(--text-3);">${manufacturer}</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <span class="status-indicator status-normal">● Connected</span>
+                            <span class="status-indicator status-excellent">🔋 ${batteryLevel}</span>
+                            ${heartRateChar ? '<span class="status-indicator status-normal">❤️ HR Live</span>' : ''}
+                        </div>
+                        <button class="scan-devices-btn" id="disconnectBtn"
+                            style="margin-top:14px;background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.25);box-shadow:none;">
+                            <i class="fas fa-times-circle"></i> Disconnect
+                        </button>
+                    </div>`;
+
+                document.getElementById('disconnectBtn')?.addEventListener('click', () => {
+                    this._bleDisconnect();
+                });
+            }
+
+            if (deviceCount) deviceCount.textContent = '1 device';
+
+            // Listen for disconnection events
+            device.addEventListener('gattserverdisconnected', () => {
+                this.showNotification(`${deviceName} disconnected`, 'warning');
+                this._resetDeviceUI();
+            });
+
+            this.showNotification(`✅ Connected to ${deviceName}${heartRateChar ? ' — Live heart rate active' : ''}`, 'success');
+
+        } catch (error) {
+            if (error.name === 'NotFoundError') {
+                // User cancelled the picker — not an error
+                this.showNotification('Device selection cancelled.', 'info');
+            } else if (error.name === 'SecurityError') {
+                this.showNotification('Bluetooth blocked. Make sure the site is on HTTPS and permissions are allowed.', 'error');
+            } else {
+                console.error('Web Bluetooth error:', error);
+                this.showNotification(`Bluetooth error: ${error.message}`, 'error');
+            }
+        } finally {
+            if (scanBtn) {
+                scanBtn.disabled = false;
+                scanBtn.innerHTML = originalHTML;
             }
         }
+    }
+
+    _bleDisconnect() {
+        if (this.bleDevice && this.bleDevice.gatt.connected) {
+            this.bleDevice.gatt.disconnect();
+        }
+        this._resetDeviceUI();
+    }
+
+    _resetDeviceUI() {
+        const deviceInfo = document.getElementById('deviceInfo');
+        const deviceCount = document.getElementById('deviceCount');
+        if (deviceInfo) {
+            deviceInfo.innerHTML = `
+                <div class="no-devices">
+                    <p>No devices connected</p>
+                    <button class="scan-devices-btn" id="scanDevicesBtn">
+                        <i class="fas fa-search"></i> Scan for Devices
+                    </button>
+                    <div class="devices-list" id="devicesList"></div>
+                </div>`;
+            // Re-attach listener since we rebuilt the DOM
+            document.getElementById('scanDevicesBtn')?.addEventListener('click', () => {
+                window.dashboardManager.scanForDevices();
+            });
+        }
+        if (deviceCount) deviceCount.textContent = '0 devices';
+        this.bleDevice = null;
+        this.bleServer = null;
+    }
+
+    async _sendBleReading(data) {
+        // Persist BLE reading to backend (best-effort, silently ignore failures)
+        try {
+            await fetch(`${API_BASE}/api/wearable/ble-reading`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: this.userId, ...data })
+            });
+        } catch (_) { /* silently ignore — live data display is still active */ }
     }
 
     logout() {
