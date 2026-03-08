@@ -18,6 +18,7 @@ class DashboardManager {
         this.charts = {};
         this.isLoading = false;
         this.lastUpdate = null;
+        this.bleReadingsBatch = []; // Buffer for reducing API calls
 
         this.init();
     }
@@ -1093,15 +1094,23 @@ class DashboardManager {
     }
 
     async _sendBleReading(data) {
-        // Persist BLE reading to backend (best-effort, silently ignore failures)
-        try {
-            await fetch(`${API_BASE}/api/wearable/ble-reading`, {
-                method: 'POST',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: this.userId, ...data })
-            });
-        } catch (_) { /* silently ignore — live data display is still active */ }
+        // Buffer readings to avoid hammering the server every second
+        this.bleReadingsBatch.push({ user_id: this.userId, ...data });
+
+        // Send to backend in batches of 15 (approx every 15 seconds)
+        if (this.bleReadingsBatch.length >= 15) {
+            const batchToSend = [...this.bleReadingsBatch];
+            this.bleReadingsBatch = []; // Reset buffer immediately
+
+            try {
+                await fetch(`${API_BASE}/api/wearable/data/batch-heart-rate`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ batch: batchToSend })
+                });
+            } catch (_) { /* silently ignore — live data display is still active */ }
+        }
     }
 
     logout() {

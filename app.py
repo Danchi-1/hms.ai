@@ -11,19 +11,11 @@ load_dotenv()
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # Local imports
-from services.background_manager import BackgroundServiceManager
 from api.auth import auth_bp
 from api.predict import predict_bp
 from api.wearable import wearable_bp
 from api.dashboard import dashboard_bp
 from api.ai_advice import ai_bp
-
-# Initialize background services
-try:
-    background_manager = BackgroundServiceManager()
-except Exception as e:
-    print(f"Warning: Failed to initialize background services: {e}")
-    background_manager = None
 
 # Initialize Flask app
 app = Flask(__name__, 
@@ -86,20 +78,12 @@ def logout():
 def health_check():
     return {
         'status': 'ok',
-        'database': 'connected',
-        'services': {
-            'running': background_manager.is_running if background_manager else False
-        }
+        'database': 'connected'
     }
 
 # ---------- APP LIFECYCLE ----------
 
 # Note: In production servers like Gunicorn, this might need different handling
-# But for local dev/demo, we can start services on first request or main
-
-def start_services():
-    if background_manager:
-        background_manager.start_services()
 
 @app.teardown_appcontext
 def cleanup(error):
@@ -121,8 +105,5 @@ if __name__ == '__main__':
     debug_mode = os.getenv('FLASK_DEBUG', 'false').lower() == 'true'
 
     print(f"Health Monitoring System starting on port {port}")
-    
-    # Start background services
-    start_services()
 
     app.run(host='0.0.0.0', port=port, debug=debug_mode, threaded=True)

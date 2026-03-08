@@ -190,8 +190,12 @@ def get_model_info():
 # 5. Fix the incomplete calculate_health_score function
 @predict_bp.route('/predict/health-score', methods=['POST'])
 def calculate_health_score():
-    """Calculate a simple health score based on key metrics"""
+    """Calculate a hybrid health score based on heuristics and ML prediction"""
     try:
+        # Check if model is loaded for ML inference
+        if health_model is None:
+            load_health_model()
+            
         user_data = request.json
         
         if not user_data:
@@ -277,33 +281,67 @@ def calculate_health_score():
         score += sedentary_score
         details['sedentary'] = {'score': sedentary_score, 'max': 20, 'value': sedentary_minutes}
         
-        # Calculate percentage
+        # Calculate heuristic percentage
         percentage = (score / max_score) * 100
         
-        # Determine health grade
+        ml_prediction = None
+        
+        # ML Inference Integration
+        if health_model is not None:
+            try:
+                # Map frontend metrics to the model's expected feature names
+                ml_data = {
+                    'avg_heart_rate': hr_avg if hr_avg > 0 else 72,
+                    'avg_steps': steps,
+                    'avg_sleep_duration': sleep_hours * 60,
+                    'avg_active_minutes': total_active,
+                    'avg_sedentary_minutes': sedentary_minutes,
+                    'avg_calories': user_data.get('Calories', 2000),
+                    'avg_sleep_efficiency': 85 
+                }
+                
+                ml_prediction = health_model.predict_health_risk(ml_data)
+                risk_level = ml_prediction.get('risk_level', 'Unknown')
+                
+                # ML-based adjustments to the heuristic score
+                if 'High' in risk_level and percentage > 65:
+                    percentage = 65.0  # Cap at D if ML detects High Risk
+                elif 'Medium' in risk_level and percentage > 85:
+                    percentage = 85.0  # Cap at B if ML detects Medium Risk
+                    
+            except Exception as e:
+                # Silently fallback to heuristic if ML mapping fails
+                logging.error(f"ML inference fallback: {str(e)}")
+        
+        # Determine final health grade and message
         if percentage >= 90:
             grade = 'A'
-            message = 'Excellent health metrics!'
+            message = 'Excellent health metrics! Keep it up.'
         elif percentage >= 80:
             grade = 'B'
-            message = 'Good health metrics with room for improvement'
+            message = 'Good health metrics with a little room for improvement.'
         elif percentage >= 70:
             grade = 'C'
-            message = 'Average health metrics, focus on improvements'
+            message = 'Average health metrics, focus on steady improvements.'
         elif percentage >= 60:
             grade = 'D'
-            message = 'Below average health metrics, attention needed'
+            message = 'Below average health metrics, attention needed.'
         else:
             grade = 'F'
-            message = 'Poor health metrics, immediate action recommended'
+            message = 'Poor health metrics, immediate action recommended.'
+            
+        # Append ML warning if applicable
+        if ml_prediction and 'High' in ml_prediction.get('risk_level', ''):
+            message = "⚠️ " + message + " AI detected potential high risk factors."
         
         return jsonify({
-            'health_score': score,
+            'health_score': score, # Keep base score for UI details
             'max_score': max_score,
             'percentage': round(percentage, 1),
             'grade': grade,
             'message': message,
             'details': details,
+            'ml_insight': ml_prediction,
             'timestamp': datetime.now().isoformat()
         }), 200
         

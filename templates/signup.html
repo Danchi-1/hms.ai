@@ -91,7 +91,11 @@
                     <div class="form-group">
                         <label class="form-label" for="password">Password</label>
                         <input type="password" class="form-input" id="password" name="password" required
-                            placeholder="Min. 8 characters" autocomplete="new-password">
+                            minlength="8" placeholder="Min. 8 characters" autocomplete="new-password">
+                        <div class="password-match-indicator" id="strengthIndicator">
+                            <i class="fas fa-check-circle match-success" style="display: none;"></i>
+                            <i class="fas fa-times-circle match-error" style="display: none;"></i>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -185,14 +189,56 @@
                 }
             }
 
+            const strengthIndicator = document.getElementById('strengthIndicator');
+            const strengthSuccess = strengthIndicator.querySelector('.match-success');
+            const strengthError = strengthIndicator.querySelector('.match-error');
+
+            function updatePasswordStrength() {
+                const pass = passwordInput.value;
+                if (!pass) {
+                    strengthIndicator.classList.remove('visible');
+                    passwordInput.classList.remove('valid', 'invalid');
+                    return;
+                }
+                
+                strengthIndicator.classList.add('visible');
+                
+                // Real-time minimum length validation
+                if (pass.length >= 8) {
+                    passwordInput.classList.add('valid');
+                    passwordInput.classList.remove('invalid');
+                    strengthSuccess.style.display = 'block';
+                    strengthError.style.display = 'none';
+                } else {
+                    passwordInput.classList.add('invalid');
+                    passwordInput.classList.remove('valid');
+                    strengthSuccess.style.display = 'none';
+                    strengthError.style.display = 'block';
+                }
+            }
+
+            passwordInput.addEventListener('input', updatePasswordStrength);
             passwordInput.addEventListener('input', updateMatchStatus);
             confirmInput.addEventListener('input', updateMatchStatus);
 
             const form = document.getElementById('signupForm');
             const btn = document.getElementById('signupBtn');
             form.addEventListener('submit', (e) => {
-                if (form.checkValidity()) {
+                // Check default HTML5 validity (like minlength=8) and our custom match check
+                if (form.checkValidity() && passwordInput.value === confirmInput.value) {
                     btn.classList.add('loading');
+                } else {
+                    e.preventDefault(); // Prevent submit if JS check fails
+                    
+                    // Trigger visual shake on invalid fields
+                    if (passwordInput.value.length < 8) {
+                        passwordInput.classList.add('invalid');
+                        updatePasswordStrength();
+                    }
+                    if (passwordInput.value !== confirmInput.value) {
+                        confirmInput.classList.add('invalid');
+                        updateMatchStatus();
+                    }
                 }
             });
         });

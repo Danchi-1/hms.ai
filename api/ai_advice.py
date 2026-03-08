@@ -85,9 +85,12 @@ def get_gemini_model():
         },
     ]
 
-    return genai.GenerativeModel(model_name="gemini-1.5-flash",
-                                 safety_settings=safety_settings,
-                                 system_instruction=SYSTEM_PROMPT)
+    return genai.GenerativeModel(
+        model_name="gemini-1.5-flash",
+        safety_settings=safety_settings,
+        system_instruction=SYSTEM_PROMPT,
+        generation_config={"response_mime_type": "application/json"}
+    )
 
 @ai_bp.route('/health-advice', methods=['POST'])
 def get_health_advice():
@@ -126,11 +129,10 @@ def get_health_advice():
         model = get_gemini_model()
         response = model.generate_content(user_context_str)
         
-        # 5. Safe Parsing
+        # 5. Native JSON Parsing
         try:
-            # Strip potential markdown fences if model yields them despite instructions
-            Clean_text = response.text.replace('```json', '').replace('```', '').strip()
-            advice_json = json.loads(Clean_text)
+            # The model is configured to return strict JSON strings
+            advice_json = json.loads(response.text)
             
             # 6. Forced Safety Override (Redundancy)
             # If metrics are critically dangerous, force escalation even if LLM missed it

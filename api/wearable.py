@@ -204,6 +204,42 @@ def receive_heart_rate():
     except Exception as e:
         return jsonify({'error': f'Failed to store heart rate: {str(e)}'}), 500
 
+@wearable_bp.route('/data/batch-heart-rate', methods=['POST'])
+def receive_batch_heart_rate():
+    """Receive a batch of heart rate data from wearable device"""
+    auth_error = require_auth()
+    if auth_error:
+        return auth_error
+    
+    try:
+        data = request.get_json()
+        if not data or 'batch' not in data:
+            return jsonify({'error': 'Batch data required'}), 400
+        
+        user_id = session['user_id']
+        batch = data['batch']
+        
+        db_batch = []
+        for item in batch:
+            hr = item.get('heart_rate')
+            timestamp = item.get('timestamp', datetime.now().isoformat())
+            device_id = item.get('device_id')
+            
+            # Validate heart rate
+            if isinstance(hr, (int, float)) and 0 < hr <= 300:
+                db_batch.append((user_id, timestamp, hr, device_id))
+        
+        if db_batch:
+            db.store_heart_rate_batch(db_batch)
+            
+        return jsonify({
+            'message': f'Successfully stored {len(db_batch)} heart rate readings',
+            'count': len(db_batch)
+        }), 201
+        
+    except Exception as e:
+        return jsonify({'error': f'Failed to store batch heart rate: {str(e)}'}), 500
+
 @wearable_bp.route('/data/activity', methods=['POST'])
 def receive_activity():
     """Receive activity data from wearable device"""

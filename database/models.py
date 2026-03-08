@@ -170,6 +170,16 @@ class DatabaseManager:
             ''', (user_id, timestamp, heart_rate, device_id))
             conn.commit()
     
+    def store_heart_rate_batch(self, batch_data):
+        """Store multiple heart rate readings at once using executemany"""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.executemany('''
+                INSERT INTO heart_rate_data (user_id, timestamp, heart_rate, device_id)
+                VALUES (?, ?, ?, ?)
+            ''', batch_data)
+            conn.commit()
+    
     def store_daily_activity(self, user_id, activity_date, **kwargs):
         """Store daily activity data"""
         with sqlite3.connect(self.db_path) as conn:
