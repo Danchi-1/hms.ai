@@ -141,8 +141,9 @@ button { font-family: inherit; }
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 18px 0;
+    padding: 16px 0;
     gap: 2rem;
+    min-height: 72px; /* Ensure minimum height so logo isn't cropped */
 }
 
 /* Logo */

@@ -932,25 +932,16 @@ class DashboardManager {
             this.showNotification('Select your health device from the browser prompt...', 'info');
 
             const device = await navigator.bluetooth.requestDevice({
-                // Accept any device that advertises a heart rate OR fitness machine service
-                filters: [
-                    { services: [HEART_RATE_SERVICE] },
-                    { services: [0x1826] },          // Fitness Machine
-                    { services: [0x1810] },          // Blood Pressure
-                    { services: [0x1808] },          // Glucose
-                    { namePrefix: 'Polar' },
-                    { namePrefix: 'Garmin' },
-                    { namePrefix: 'Fitbit' },
-                    { namePrefix: 'Mi' },
-                    { namePrefix: 'Galaxy' },
-                    { namePrefix: 'Amazfit' },
-                    { namePrefix: 'WHOOP' },
-                    { namePrefix: 'Oura' },
-                ],
+                // Accept all devices to ensure the scanner actually populates,
+                // then filter by optional services for interaction
+                acceptAllDevices: true,
                 optionalServices: [
                     HEART_RATE_SERVICE,
                     BATTERY_SERVICE,
                     DEVICE_INFO_SERVICE,
+                    0x1826, // Fitness Machine
+                    0x1810, // Blood Pressure
+                    0x1808  // Glucose
                 ]
             });
 

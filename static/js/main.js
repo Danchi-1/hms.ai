@@ -70,7 +70,7 @@ class HMSApp {
                     icon.classList.add('fa-times');
                 } else {
                     icon.classList.remove('fa-times');
-                    icon.classList.add('fa-bars');
+                    icon.classList.add('fa-stream');
                 }
             });
 
@@ -80,7 +80,7 @@ class HMSApp {
                     navLinks.classList.remove('active');
                     const icon = mobileMenuBtn.querySelector('i');
                     icon.classList.remove('fa-times');
-                    icon.classList.add('fa-bars');
+                    icon.classList.add('fa-stream');
                 }
             });
         }

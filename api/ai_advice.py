@@ -3,12 +3,18 @@ import os
 import google.generativeai as genai
 import json
 import logging
+import time
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 ai_bp = Blueprint('ai', __name__)
+
+# Simple in-memory cache to prevent Gemini API quota exhaustion
+# Structure: { user_id: { 'timestamp': float, 'data': dict } }
+advice_cache = {}
+CACHE_TTL = 1800  # 30 minutes in seconds
 
 # Configure Gemini
 API_KEY = os.getenv('GEMINI_API_KEY')
@@ -109,6 +115,16 @@ def get_health_advice():
         })
 
     try:
+        user_id = session['user_id']
+        
+        # 3. Check Cache First (Prevent API looping/exhaustion)
+        current_time = time.time()
+        if user_id in advice_cache:
+            cached = advice_cache[user_id]
+            if current_time - cached['timestamp'] < CACHE_TTL:
+                logger.info(f"Returning cached AI advice for user {user_id}")
+                return jsonify(cached['data'])
+
         data = request.get_json()
         
         # 3. Construct Context for LLM
@@ -149,18 +165,32 @@ def get_health_advice():
                 if not advice_json.get('escalation_notice'):
                     advice_json['escalation_notice'] = "CRITICAL: Vitals indicate potential medical emergency. Seek help immediately."
             
+            # Save to cache before returning
+            advice_cache[user_id] = {
+                'timestamp': current_time,
+                'data': advice_json
+            }
             return jsonify(advice_json)
 
         except json.JSONDecodeError:
             logger.error(f"Failed to parse LLM response: {response.text}")
-            return jsonify({
+            fallback = {
                 "summary": "Health data analyzed.",
                 "observations": ["Complex patterns detected."],
                 "risk_interpretation": "Please review your vitals manually.",
                 "recommended_actions": ["Consult healthcare provider if feeling unwell."],
                 "escalation_notice": "Error parsing detailed advice."
-            })
+            }
+            return jsonify(fallback)
 
     except Exception as e:
-        logger.error(f"AI Advisor Error: {str(e)}")
-        return jsonify({'error': 'AI Service Error'}), 500
+        logger.error(f"AI Advisor Error (Rate Limit or Connection): {str(e)}")
+        # If API is exhausted or fails completely, return safe fallback instead of 500
+        fallback = {
+            "summary": "AI Advisory services are temporarily busy.",
+            "observations": ["Metrics are being recorded correctly.", "Analysis engine is currently rate-limited."],
+            "risk_interpretation": "Unable to generate active risk interpretation at this moment.",
+            "recommended_actions": ["Keep tracking your vitals.", "Try refreshing in a few minutes."],
+            "escalation_notice": None
+        }
+        return jsonify(fallback), 200

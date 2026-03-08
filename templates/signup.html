@@ -91,7 +91,7 @@
                     <div class="form-group">
                         <label class="form-label" for="password">Password</label>
                         <input type="password" class="form-input" id="password" name="password" required
-                            minlength="8" placeholder="Min. 8 characters" autocomplete="new-password">
+                            minlength="8" pattern=".*\d.*" placeholder="Min. 8 characters, at least 1 number" autocomplete="new-password">
                         <div class="password-match-indicator" id="strengthIndicator">
                             <i class="fas fa-check-circle match-success" style="display: none;"></i>
                             <i class="fas fa-times-circle match-error" style="display: none;"></i>
@@ -203,8 +203,8 @@
                 
                 strengthIndicator.classList.add('visible');
                 
-                // Real-time minimum length validation
-                if (pass.length >= 8) {
+                // Real-time validation (length and number)
+                if (pass.length >= 8 && /\d/.test(pass)) {
                     passwordInput.classList.add('valid');
                     passwordInput.classList.remove('invalid');
                     strengthSuccess.style.display = 'block';
@@ -221,24 +221,65 @@
             passwordInput.addEventListener('input', updateMatchStatus);
             confirmInput.addEventListener('input', updateMatchStatus);
 
+            // Initialize a temporary app instance just to use the notification system on auth pages
+            // if we are not on the dashboard where window.dashboardManager exists
+            const app = new HMSApp();
+            
             const form = document.getElementById('signupForm');
             const btn = document.getElementById('signupBtn');
+            const termsBox = document.getElementById('termsAccepted');
+            
+            // Override native validation tooltips for handled fields
+            form.addEventListener('invalid', (e) => {
+                if (e.target.id === 'termsAccepted' || e.target.id === 'password') {
+                    e.preventDefault(); // Prevent native tooltip
+                }
+            }, true);
+            
             form.addEventListener('submit', (e) => {
-                // Check default HTML5 validity (like minlength=8) and our custom match check
-                if (form.checkValidity() && passwordInput.value === confirmInput.value) {
+                e.preventDefault(); // Always prevent default to handle custom logic
+                
+                // 1. Check Terms Box explicitly
+                if (!termsBox.checked) {
+                    app.showNotification('Please agree to the Terms & Privacy Policy to continue', 'error');
+                    termsBox.closest('.checkbox-container').style.animation = 'shake 0.4s ease';
+                    setTimeout(() => termsBox.closest('.checkbox-container').style.animation = '', 400);
+                    return;
+                }
+                
+                // 2. Check Password Length / Complexity explicitly
+                const pass = passwordInput.value;
+                if (pass.length < 8) {
+                    app.showNotification('Password must contain at least 8 characters', 'error');
+                    passwordInput.classList.add('invalid');
+                    updatePasswordStrength();
+                    return;
+                }
+                
+                // Check for at least one number (matching the user request from screenshot)
+                if (!/\d/.test(pass)) {
+                    app.showNotification('Password must contain at least one number', 'error');
+                    passwordInput.classList.add('invalid');
+                    updatePasswordStrength();
+                    return;
+                }
+                
+                // 3. Check Passwords Match explicitly
+                if (pass !== confirmInput.value) {
+                    app.showNotification('Passwords do not match', 'error');
+                    confirmInput.classList.add('invalid');
+                    updateMatchStatus();
+                    return;
+                }
+                
+                // 4. If all custom checks pass, trigger the standard HTML5 check for email/username/age
+                if (form.checkValidity()) {
                     btn.classList.add('loading');
+                    // Manually trigger the handleSignup function since we prevented default
+                    app.handleSignup(e);
                 } else {
-                    e.preventDefault(); // Prevent submit if JS check fails
-                    
-                    // Trigger visual shake on invalid fields
-                    if (passwordInput.value.length < 8) {
-                        passwordInput.classList.add('invalid');
-                        updatePasswordStrength();
-                    }
-                    if (passwordInput.value !== confirmInput.value) {
-                        confirmInput.classList.add('invalid');
-                        updateMatchStatus();
-                    }
+                    // Trigger native validation UI for remaining fields
+                    form.reportValidity();
                 }
             });
         });
