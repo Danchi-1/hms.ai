@@ -191,8 +191,9 @@
             const form = document.getElementById('signupForm');
             const btn = document.getElementById('signupBtn');
             form.addEventListener('submit', (e) => {
-                if (!form.checkValidity()) return;
-                btn.classList.add('loading');
+                if (form.checkValidity()) {
+                    btn.classList.add('loading');
+                }
             });
         });
     </script>

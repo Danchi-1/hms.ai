@@ -116,7 +116,14 @@ class HMSApp {
     }
 
     hideLoading() {
-        document.getElementById('loadingSpinner').classList.remove('active');
+        const spinner = document.getElementById('loadingSpinner');
+        if (spinner) spinner.classList.remove('active');
+        
+        // Also reset auth buttons if they are stuck in loading state (e.g. on error)
+        const loginBtn = document.getElementById('loginBtn');
+        const signupBtn = document.getElementById('signupBtn');
+        if (loginBtn) loginBtn.classList.remove('loading');
+        if (signupBtn) signupBtn.classList.remove('loading');
     }
 
     showNotification(message, type = 'success') {

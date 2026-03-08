@@ -110,7 +110,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('loginForm');
             const btn = document.getElementById('loginBtn');
-            form.addEventListener('submit', () => { btn.classList.add('loading'); });
+            form.addEventListener('submit', () => { 
+                if (form.checkValidity()) {
+                    btn.classList.add('loading'); 
+                }
+            });
         });
     </script>
 </body>
