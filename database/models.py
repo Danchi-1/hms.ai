@@ -7,7 +7,7 @@ import hashlib
 
 db = SQLAlchemy()
 bcrypt = Bcrypt()
-limiter = Limiter(key_func=get_remote_address, default_limits=["200 per day", "50 per hour"], storage_uri="memory://")
+limiter = Limiter(key_func=get_remote_address, storage_uri="memory://")
 
 class User(db.Model):
     __tablename__ = 'users'
