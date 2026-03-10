@@ -19,6 +19,8 @@ class DashboardManager {
         this.isLoading = false;
         this.lastUpdate = null;
         this.bleReadingsBatch = []; // Buffer for reducing API calls
+        this.isBluetoothConnected = false;
+        this.connectedDeviceName = null;
 
         this.init();
     }
@@ -35,15 +37,49 @@ class DashboardManager {
             console.error("Could not determine user ID. Redirecting to login.");
             window.location.href = '/login';
         }
+        
+        // Initialize Web Bluetooth features
+        this.initBluetooth();
     }
 
     // getUserId removed as it's unsafe/buggy
 
-    // getSessionUserId helper removed or kept as backup if needed, but profile is safer
+    async initBluetooth() {
+        if (!navigator.bluetooth) {
+            console.warn("Web Bluetooth is not supported in this browser.");
+            // Show persistent warning for unsupported browsers
+            const userInfo = document.querySelector('.dashboard-user');
+            if (userInfo) {
+                const warning = document.createElement('div');
+                warning.style.cssText = 'background: rgba(239, 68, 68, 0.1); color: #f87171; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; border: 1px solid rgba(239, 68, 68, 0.2); margin-right: 10px;';
+                warning.innerHTML = '⚠️ Use Chrome/Edge for Bluetooth';
+                userInfo.prepend(warning);
+            }
+            return;
+        }
+
+        // Try to auto-restore previously permitted devices (Persistent Connection)
+        try {
+            if (typeof navigator.bluetooth.getDevices === 'function') {
+                const devices = await navigator.bluetooth.getDevices();
+                if (devices.length > 0) {
+                    for (const device of devices) {
+                        // Hook up event listeners without strictly forcing a connection
+                        // until the device is actually in range and broadcasting again.
+                        device.addEventListener('gattserverdisconnected', () => this.handleDeviceDisconnect());
+                    }
+                    console.log(`Found ${devices.length} previously paired Bluetooth devices.`);
+                }
+            }
+        } catch (error) {
+            console.warn("Could not check for persistent Bluetooth devices:", error);
+        }
+    }
 
     setupEventListeners() {
         // Refresh button
-        document.getElementById('refreshBtn')?.addEventListener('click', () => {
+        document.getElementById('refreshBtn')?.addEventListener('click', (e) => {
+            e.preventDefault(); // Prevent accidental form submission or page reload
             this.loadDashboardData(true);
         });
 
@@ -425,41 +461,45 @@ class DashboardManager {
         const deviceInfo = document.getElementById('deviceInfo');
         const deviceCount = document.getElementById('deviceCount');
 
-        // Simulate device connections based on data availability
-        const hasData = data.raw_data && (
-            data.raw_data.heart_rate?.length > 0 ||
-            data.raw_data.activity?.length > 0 ||
-            data.raw_data.sleep?.length > 0
-        );
-
-        if (hasData) {
-            const devices = this.generateDeviceList(data);
+        // Strictly use real connection state, not historical backend data
+        if (this.isBluetoothConnected) {
             if (deviceInfo) {
-                deviceInfo.innerHTML = devices.map(device => `
-                    <div class="device-item">
-                        <div class="device-name">${device.name}</div>
-                        <div class="device-status">
-                            <span class="status-indicator status-${device.status.toLowerCase()}">${device.status}</span>
-                            <span class="battery-level">Battery: ${device.battery}%</span>
+                deviceInfo.innerHTML = `
+                    <div class="device-item current-device" style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2);">
+                        <div class="device-name" style="font-weight: 600; color: var(--text-1);">
+                            <i class="fas fa-link" style="color: #10b981; margin-right: 6px;"></i> ${this.connectedDeviceName || 'Smart Watch'}
                         </div>
-                        <div class="device-sync">Last sync: ${device.lastSync}</div>
+                        <div class="device-status" style="margin-top: 8px;">
+                            <span class="status-indicator status-active" style="display:inline-block; margin-right: 12px;">Active Sync</span>
+                            <span class="battery-level" id="liveBatteryLevel" style="color: var(--text-2); font-size: 0.85rem;"><i class="fas fa-battery-half"></i> Reading...</span>
+                        </div>
+                        <div class="device-sync" style="margin-top: 8px; font-size: 0.75rem; color: var(--text-3);">
+                            Live streaming via Web Bluetooth
+                        </div>
                     </div>
-                `).join('');
+                `;
             }
 
             if (deviceCount) {
-                deviceCount.textContent = `${devices.length} device${devices.length !== 1 ? 's' : ''}`;
+                deviceCount.textContent = '1 device connected';
             }
         } else {
             if (deviceInfo) {
                 deviceInfo.innerHTML = `
-                    <div class="no-devices">
-                        <p>No devices connected</p>
-                        <button class="scan-devices-btn" id="scanDevicesBtn">🔍 Scan for Devices</button>
+                    <div class="no-devices" style="text-align: center; padding: 10px 0;">
+                        <p style="margin-bottom: 12px; color: var(--text-2); font-size: 0.9rem;">To receive real-time vitals and AI insights, please connect your smartwatch or fitness band.</p>
+                        <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; opacity: 0.6; font-size: 1.2rem;">
+                            <i class="fab fa-apple" title="Apple Watch"></i>
+                            <i class="fas fa-heartbeat" title="Fitbit"></i>
+                            <i class="fas fa-running" title="Garmin"></i>
+                        </div>
+                        <button class="scan-devices-btn" id="scanDevicesBtn" style="width: 100%; padding: 10px; border-radius: var(--radius-md); background: rgba(13, 148, 136, 0.1); color: var(--primary); border: 1px solid rgba(13, 148, 136, 0.3); font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+                            <i class="fas fa-search" style="margin-right: 6px;"></i> Scan for Devices
+                        </button>
                     </div>
                 `;
             }
-            if (deviceCount) deviceCount.textContent = '0 devices';
+            if (deviceCount) deviceCount.textContent = '0 devices connected';
         }
     }
 
@@ -951,6 +991,13 @@ class DashboardManager {
             const server = await device.gatt.connect();
             this.bleDevice = device;
             this.bleServer = server;
+            
+            // Set global state
+            this.isBluetoothConnected = true;
+            this.connectedDeviceName = device.name || 'Bluetooth Device';
+            
+            // Listen for disconnects
+            device.addEventListener('gattserverdisconnected', () => this.handleDeviceDisconnect());
 
             // Step 3: Try to read battery level
             let batteryLevel = '--';

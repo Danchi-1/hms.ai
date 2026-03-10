@@ -10,6 +10,8 @@ load_dotenv()
 # Add project root to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+from database.models import db
+
 # Local imports
 from api.auth import auth_bp
 from api.predict import predict_bp
@@ -23,6 +25,21 @@ app = Flask(__name__,
             template_folder='templates')
 
 app.secret_key = os.getenv('SECRET_KEY', 'your-secret-key-here')
+
+# Configure Database
+DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///data/sqlite.db')
+# Quick fix for Render Postgres URLs (postgres:// -> postgresql://)
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db.init_app(app)
+
+# Create tables
+with app.app_context():
+    db.create_all()
 
 # Configure CORS
 CORS(app, resources={

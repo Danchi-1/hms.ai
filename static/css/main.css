@@ -142,7 +142,7 @@ button { font-family: inherit; }
     align-items: center;
     justify-content: space-between;
     padding: 16px 0;
-    gap: 2rem;
+    gap: 1rem;
     min-height: 72px; /* Ensure minimum height so logo isn't cropped */
 }
 
@@ -347,7 +347,13 @@ button { font-family: inherit; }
         gap: 8px;
     }
     .mobile-auth-buttons .btn { width: 100%; text-align: center; }
-    .dashboard-nav { height: 69px; }
+    
+    .dashboard-nav { 
+        min-height: 69px; 
+        height: auto; 
+        flex-wrap: wrap; 
+        padding: 8px 0; 
+    }
     .nav-left { display: flex; align-items: center; gap: 14px; }
 }
 

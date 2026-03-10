@@ -7,10 +7,9 @@ import os
 # Add project root to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from database.models import DatabaseManager
+from database.models import db_manager as db
 
 auth_bp = Blueprint('auth', __name__)
-db = DatabaseManager()
 
 def validate_email(email):
     """Validate email format"""

@@ -9,12 +9,11 @@ import asyncio
 # Add project root to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from database.models import DatabaseManager
+from database.models import db_manager as db
 from ble.ble import BLEHealthMonitor
 from collector.collector import HealthDataCollector
 
 wearable_bp = Blueprint('wearable', __name__)
-db = DatabaseManager()
 
 def require_auth():
     """Check if user is authenticated"""

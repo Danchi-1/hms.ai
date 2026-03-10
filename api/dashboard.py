@@ -6,10 +6,9 @@ import os
 # Add project root to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from database.models import DatabaseManager
+from database.models import db_manager
 
 dashboard_bp = Blueprint('dashboard', __name__)
-db_manager = DatabaseManager()
 
 @dashboard_bp.route('/<int:user_id>')
 def dashboard(user_id):
