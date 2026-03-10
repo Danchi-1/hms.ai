@@ -1,8 +1,13 @@
 from flask_sqlalchemy import SQLAlchemy
+from flask_bcrypt import Bcrypt
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from datetime import datetime
 import hashlib
 
 db = SQLAlchemy()
+bcrypt = Bcrypt()
+limiter = Limiter(key_func=get_remote_address, default_limits=["200 per day", "50 per hour"], storage_uri="memory://")
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -23,7 +28,10 @@ class User(db.Model):
     devices = db.relationship('DeviceConnection', backref='user', lazy='dynamic', cascade='all, delete-orphan')
 
     def check_password(self, password):
-        return self.password_hash == hashlib.sha256(password.encode()).hexdigest()
+        # Gracefully handle existing simple SHA-256 hashes (length 64) during migration
+        if len(self.password_hash) == 64:
+            return self.password_hash == hashlib.sha256(password.encode()).hexdigest()
+        return bcrypt.check_password_hash(self.password_hash, password)
 
 class UserProfile(db.Model):
     __tablename__ = 'user_profiles'
@@ -111,7 +119,7 @@ class DatabaseManager:
         db.create_all()
 
     def create_user(self, username, email, password):
-        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
         user = User(username=username, email=email, password_hash=password_hash)
         try:
             db.session.add(user)

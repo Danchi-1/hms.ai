@@ -1,13 +1,18 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify
+from flask_jwt_extended import (
+    create_access_token, set_access_cookies, unset_jwt_cookies,
+    jwt_required, get_jwt_identity, verify_jwt_in_request
+)
 from datetime import datetime
 import re
 import sys
 import os
+from functools import wraps
 
 # Add project root to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from database.models import db_manager as db
+from database.models import db_manager as db, limiter
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -29,6 +34,7 @@ def validate_password(password):
     return True, "Password is valid"
 
 @auth_bp.route('/register', methods=['POST'])
+@limiter.limit("5 per minute")
 def register():
     """User registration endpoint"""
     try:
@@ -64,93 +70,55 @@ def register():
         if user_id is None:
             return jsonify({'error': 'Username or email already exists'}), 409
         
-        # Set session
-        session['user_id'] = user_id
-        session['username'] = username
-        session['email'] = email
-        session['login_time'] = datetime.now().isoformat()
-        
-        return jsonify({
+        # Set JWT cookies
+        response = jsonify({
             'message': 'User registered successfully',
             'user_id': user_id,
             'username': username,
             'email': email
-        }), 201
+        })
+        access_token = create_access_token(identity={'id': user_id, 'username': username, 'email': email})
+        set_access_cookies(response, access_token)
+        
+        return response, 201
         
     except Exception as e:
         return jsonify({'error': f'Registration failed: {str(e)}'}), 500
 
 @auth_bp.route('/login', methods=['POST'])
+@limiter.limit("5 per minute")
 def login():
     """User login endpoint"""
     try:
         data = request.get_json()
         
-        # Validate input
-        if not data or not all(k in data for k in ['email', 'password']):
-            # Also support username login if needed, but keeping simple for now
-            # If the frontend sends username instead of email, we might need to adjust
-            if 'username' in data and 'password' in data:
-                 # Logic for username login
-                 pass 
-            elif 'email' not in data:
-                return jsonify({'error': 'Missing email or password'}), 400
-        
-        # The original code expected both username AND password in data for login? 
-        # Or email and password? 
-        # The db.authenticate_user uses username and password.
-        # Let's check if we can get username from email or if we need username to login.
-        # Re-reading models.py: authenticate_user takes username, password.
-        # But the frontend might be sending email. 
-        # Ideally we should fix models.py to allow login by email too, but for now let's assume
-        # the frontend sends what is needed. If frontend sends email, we need to lookup username or change db method.
-        # Let's look at the original app.py:
-        # data = request.get_json(); email = data.get('email'); password = data.get('password')
-        # if login(email, password): ...
-        
-        # Wait, the original `api/auth.py` had `def login(email, password):` which triggered the error.
-        # And `db.authenticate_user(username, password)` uses username.
-        # This implies a mismatch.
-        # I will update this to handle both, but standardizing on email for login is better for users.
-        # However, `models.py` `authenticate_user` queries by `username`.
-        # I will proceed by trying to support email login if possible, or request the user to provide username.
-        # For now, let's look at what the frontend sends. `login.html` form usually sends what?
-        # I'll check dashboard or login html later. For now, I'll stick to what the function signature implied: email/pass
-        
-        # BUT `db.authenticate_user` strictly checks `username = ?`. 
-        # So I'll just check if the user provided username or email.
-        
+        if not data:
+            return jsonify({'error': 'Missing request body'}), 400
+            
         username_or_email = data.get('username') or data.get('email')
         password = data.get('password')
 
         if not username_or_email or not password:
              return jsonify({'error': 'Missing credentials'}), 400
 
-        # We might need to find the user by email first if it's an email
-        # But `DatabaseManager` doesn't have `get_user_by_email`.
-        # I will update `DatabaseManager` later to support this or just try to pass it as username.
-        
         user = db.authenticate_user(username_or_email, password)
         
         if user is None:
-            # Try to see if it was an email
-            # This is a bit hacky without changing models, but let's stick to simple first.
             return jsonify({'error': 'Invalid credentials'}), 401
         
         user_id, username, email = user
         
-        # Set session
-        session['user_id'] = user_id
-        session['username'] = username
-        session['email'] = email
-        session['login_time'] = datetime.now().isoformat()
-        
-        return jsonify({
+        # Set JWT cookies
+        response = jsonify({
             'message': 'Login successful',
             'user_id': user_id,
             'username': username,
             'email': email
-        }), 200
+        })
+        access_token = create_access_token(identity={'id': user_id, 'username': username, 'email': email})
+        set_access_cookies(response, access_token)
+        
+        return response, 200
         
     except Exception as e:
         return jsonify({'error': f'Login failed: {str(e)}'}), 500
@@ -159,31 +127,24 @@ def login():
 def logout():
     """User logout endpoint"""
     try:
-        # Clear session
-        session.clear()
-        
-        return jsonify({'message': 'Logout successful'}), 200
-        
+        response = jsonify({'message': 'Logout successful'})
+        unset_jwt_cookies(response)
+        return response, 200
     except Exception as e:
         return jsonify({'error': f'Logout failed: {str(e)}'}), 500
 
 @auth_bp.route('/profile', methods=['GET'])
+@jwt_required()
 def get_profile():
     """Get current user profile"""
     try:
-        # Check if user is logged in
-        if 'user_id' not in session:
-            return jsonify({'error': 'Not authenticated'}), 401
+        identity = get_jwt_identity()
+        user_id = identity['id']
+        username = identity['username']
+        email = identity['email']
         
-        user_id = session['user_id']
-        username = session['username']
-        email = session.get('email')
-        login_time = session.get('login_time')
-        
-        # Get user health data summary
         health_data = db.get_user_health_data(user_id, days=7)
         
-        # Calculate basic stats
         stats = {
             'total_heart_rate_readings': len(health_data['heart_rate']),
             'total_activity_days': len(health_data['activity']),
@@ -194,7 +155,6 @@ def get_profile():
             'user_id': user_id,
             'username': username,
             'email': email,
-            'login_time': login_time,
             'stats': stats
         }), 200
         
@@ -202,37 +162,34 @@ def get_profile():
         return jsonify({'error': f'Failed to get profile: {str(e)}'}), 500
 
 @auth_bp.route('/update-profile', methods=['PUT'])
+@jwt_required()
 def update_profile():
     """Update user profile"""
     try:
-        # Check if user is logged in
-        if 'user_id' not in session:
-            return jsonify({'error': 'Not authenticated'}), 401
-        
+        identity = get_jwt_identity()
         data = request.get_json()
         if not data:
             return jsonify({'error': 'No data provided'}), 400
         
-        user_id = session['user_id']
-        
-        # Here you would implement profile update logic
-        # This is a placeholder for profile fields like age, gender, etc.
-        
+        user_id = identity['id']
+        # Placeholder for real update logic
         return jsonify({'message': 'Profile updated successfully'}), 200
         
     except Exception as e:
         return jsonify({'error': f'Failed to update profile: {str(e)}'}), 500
 
 @auth_bp.route('/check-auth', methods=['GET'])
+@jwt_required(optional=True)
 def check_auth():
     """Check if user is authenticated"""
     try:
-        if 'user_id' in session:
+        identity = get_jwt_identity()
+        if identity:
             return jsonify({
                 'authenticated': True,
-                'user_id': session['user_id'],
-                'username': session['username'],
-                'email': session.get('email')
+                'user_id': identity['id'],
+                'username': identity['username'],
+                'email': identity.get('email')
             }), 200
         else:
             return jsonify({'authenticated': False}), 401
@@ -241,13 +198,11 @@ def check_auth():
         return jsonify({'error': f'Auth check failed: {str(e)}'}), 500
 
 @auth_bp.route('/change-password', methods=['POST'])
+@jwt_required()
 def change_password():
     """Change user password"""
     try:
-        # Check if user is logged in
-        if 'user_id' not in session:
-            return jsonify({'error': 'Not authenticated'}), 401
-        
+        identity = get_jwt_identity()
         data = request.get_json()
         if not data or not all(k in data for k in ['current_password', 'new_password']):
             return jsonify({'error': 'Missing required fields'}), 400
@@ -255,18 +210,15 @@ def change_password():
         current_password = data['current_password']
         new_password = data['new_password']
         
-        # Validate current password
-        username = session['username']
+        username = identity['username']
         user = db.authenticate_user(username, current_password)
         if user is None:
             return jsonify({'error': 'Current password is incorrect'}), 401
         
-        # Validate new password
         is_valid, message = validate_password(new_password)
         if not is_valid:
             return jsonify({'error': message}), 400
         
-        # Update password (placeholder)
         return jsonify({'message': 'Password changed successfully'}), 200
         
     except Exception as e:
@@ -275,9 +227,11 @@ def change_password():
 # Helper function for other routes to check authentication
 def require_auth(func):
     """Decorator function to require authentication"""
+    @wraps(func)
     def wrapper(*args, **kwargs):
-        if 'user_id' not in session:
+        try:
+            verify_jwt_in_request()
+            return func(*args, **kwargs)
+        except Exception:
             return jsonify({'error': 'Authentication required'}), 401
-        return func(*args, **kwargs)
-    wrapper.__name__ = func.__name__
     return wrapper

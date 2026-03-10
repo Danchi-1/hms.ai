@@ -1,4 +1,5 @@
-from flask import Blueprint, jsonify, session
+from flask import Blueprint, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime
 import sys
 import os
@@ -11,10 +12,12 @@ from database.models import db_manager
 dashboard_bp = Blueprint('dashboard', __name__)
 
 @dashboard_bp.route('/<int:user_id>')
+@jwt_required()
 def dashboard(user_id):
     try:
-        # Security check: Ensure requesting user matches session
-        if 'user_id' not in session or session['user_id'] != user_id:
+        # Security check: Ensure requesting user matches token identity
+        identity = get_jwt_identity()
+        if identity['id'] != user_id:
              return jsonify({'error': 'Unauthorized'}), 401
 
         health_data = db_manager.get_user_health_data(user_id, days=7)

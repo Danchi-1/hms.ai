@@ -1,4 +1,5 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
 import os
 import google.generativeai as genai
 import json
@@ -99,12 +100,9 @@ def get_gemini_model():
     )
 
 @ai_bp.route('/health-advice', methods=['POST'])
+@jwt_required()
 def get_health_advice():
-    # 1. Security Check
-    if 'user_id' not in session:
-        return jsonify({'error': 'Unauthorized'}), 401
-
-    # 2. Key Check
+    # 1. Key Check
     if not API_KEY:
         return jsonify({
             'summary': 'AI Service Unavailable',
@@ -115,7 +113,7 @@ def get_health_advice():
         })
 
     try:
-        user_id = session['user_id']
+        user_id = get_jwt_identity()['id']
         
         # 3. Check Cache First (Prevent API looping/exhaustion)
         current_time = time.time()

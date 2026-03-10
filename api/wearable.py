@@ -1,4 +1,7 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify
+from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+from pydantic import ValidationError
+from api.schemas import DeviceConnectRequest
 from datetime import datetime, timedelta
 import json
 import sys
@@ -17,9 +20,19 @@ wearable_bp = Blueprint('wearable', __name__)
 
 def require_auth():
     """Check if user is authenticated"""
-    if 'user_id' not in session:
+    try:
+        verify_jwt_in_request()
+        return None
+    except Exception:
         return jsonify({'error': 'Authentication required'}), 401
-    return None
+
+class MockSession:
+    def __getitem__(self, key):
+        if key == 'user_id':
+            return get_jwt_identity()['id']
+        raise KeyError(key)
+
+session = MockSession()
 
 @wearable_bp.route('/devices', methods=['GET'])
 def get_devices():
@@ -52,13 +65,15 @@ def connect_device():
         return auth_error
     
     try:
-        data = request.get_json()
-        if not data or 'device_address' not in data:
-            return jsonify({'error': 'Device address required'}), 400
+        try:
+            req_data = request.get_json() or {}
+            data = DeviceConnectRequest.model_validate(req_data)
+        except ValidationError as e:
+            return jsonify({'error': 'Invalid payload', 'details': e.errors()}), 400
         
-        device_address = data['device_address']
-        device_name = data.get('device_name', 'Unknown Device')
-        device_type = data.get('device_type', 'fitness_tracker')
+        device_address = data.device_address
+        device_name = data.device_name
+        device_type = data.device_type
         
         user_id = session['user_id']
         

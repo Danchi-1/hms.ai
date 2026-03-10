@@ -1,5 +1,6 @@
-# api/predict.py
 from flask import Blueprint, request, jsonify, session
+from pydantic import ValidationError
+from api.schemas import PredictHealthScoreRequest
 import joblib
 import pandas as pd
 import numpy as np
@@ -195,100 +196,35 @@ def calculate_health_score():
         # Check if model is loaded for ML inference
         if health_model is None:
             load_health_model()
-            
-        user_data = request.json
-        
-        if not user_data:
+        try:
+            req_data = request.json or {}
+            validated_data = PredictHealthScoreRequest.model_validate(req_data)
+            # Pydantic dump returns dictionary correctly typed
+            user_data = validated_data.model_dump()
+        except ValidationError as e:
             return jsonify({
-                'error': 'No data provided'
+                'error': 'Invalid payload',
+                'details': e.errors()
             }), 400
         
+        # Calculate ML Inference
         score = 0
         max_score = 100
         details = {}
-        
-        # Steps score (20 points)
-        steps = user_data.get('TotalSteps', 0)
-        if steps >= 10000:
-            steps_score = 20
-        elif steps >= 8000:
-            steps_score = 16
-        elif steps >= 5000:
-            steps_score = 12
-        else:
-            steps_score = max(0, int(steps / 5000 * 12))
-        
-        score += steps_score
-        details['steps'] = {'score': steps_score, 'max': 20, 'value': steps}
-        
-        # Sleep score (20 points)
-        sleep_hours = user_data.get('SleepHours', 0)
-        if 7 <= sleep_hours <= 9:
-            sleep_score = 20
-        elif 6 <= sleep_hours <= 10:
-            sleep_score = 15
-        elif sleep_hours > 0:
-            sleep_score = max(0, int(20 - abs(sleep_hours - 7.5) * 3))
-        else:
-            sleep_score = 0
-        
-        score += sleep_score
-        details['sleep'] = {'score': sleep_score, 'max': 20, 'value': sleep_hours}
-        
-        # Activity score (20 points)
-        very_active = user_data.get('VeryActiveMinutes', 0)
-        fairly_active = user_data.get('FairlyActiveMinutes', 0)
-        total_active = very_active + fairly_active
-        
-        if total_active >= 30:
-            activity_score = 20
-        elif total_active >= 20:
-            activity_score = 15
-        elif total_active >= 10:
-            activity_score = 10
-        else:
-            activity_score = max(0, int(total_active / 10 * 10))
-        
-        score += activity_score
-        details['activity'] = {'score': activity_score, 'max': 20, 'value': total_active}
-        
-        # Heart rate score (20 points)
-        hr_avg = user_data.get('hr_avg', 0)
-        if hr_avg > 0:
-            if 60 <= hr_avg <= 100:
-                hr_score = 20
-            elif 50 <= hr_avg <= 110:
-                hr_score = 15
-            else:
-                hr_score = 10
-        else:
-            hr_score = 0
-        
-        score += hr_score
-        details['heart_rate'] = {'score': hr_score, 'max': 20, 'value': hr_avg}
-        
-        # Sedentary score (20 points) - COMPLETED
-        sedentary_minutes = user_data.get('SedentaryMinutes', 0)
-        if sedentary_minutes <= 480:  # 8 hours
-            sedentary_score = 20
-        elif sedentary_minutes <= 600:  # 10 hours
-            sedentary_score = 15
-        elif sedentary_minutes <= 720:  # 12 hours
-            sedentary_score = 10
-        else:
-            sedentary_score = 5
-        
-        score += sedentary_score
-        details['sedentary'] = {'score': sedentary_score, 'max': 20, 'value': sedentary_minutes}
-        
-        # Calculate heuristic percentage
-        percentage = (score / max_score) * 100
-        
         ml_prediction = None
+        percentage = 70.0
         
         # ML Inference Integration
         if health_model is not None:
             try:
+                hr_avg = user_data.get('hr_avg', 0)
+                steps = user_data.get('TotalSteps', 0)
+                sleep_hours = user_data.get('SleepHours', 0)
+                sedentary_minutes = user_data.get('SedentaryMinutes', 0)
+                very_active = user_data.get('VeryActiveMinutes', 0)
+                fairly_active = user_data.get('FairlyActiveMinutes', 0)
+                total_active = very_active + fairly_active
+
                 # Map frontend metrics to the model's expected feature names
                 ml_data = {
                     'avg_heart_rate': hr_avg if hr_avg > 0 else 72,
@@ -302,15 +238,22 @@ def calculate_health_score():
                 
                 ml_prediction = health_model.predict_health_risk(ml_data)
                 risk_level = ml_prediction.get('risk_level', 'Unknown')
-                
-                # ML-based adjustments to the heuristic score
-                if 'High' in risk_level and percentage > 65:
-                    percentage = 65.0  # Cap at D if ML detects High Risk
-                elif 'Medium' in risk_level and percentage > 85:
-                    percentage = 85.0  # Cap at B if ML detects Medium Risk
-                    
+                confidence = ml_prediction.get('confidence', 0.5)
+
+                # Map ML Risk Level to a percentage score (0-100)
+                if 'Low' in risk_level:
+                    percentage = 80 + (20 * confidence)
+                elif 'Medium' in risk_level:
+                    percentage = 60 + (20 * confidence)
+                elif 'High' in risk_level:
+                    percentage = max(0, 60 - (30 * confidence))
+                else:
+                    percentage = 70.0
+
+                score = int((percentage / 100) * max_score)
+                details['ml_inference'] = {'score': score, 'max': max_score, 'value': risk_level, 'confidence': confidence}
+
             except Exception as e:
-                # Silently fallback to heuristic if ML mapping fails
                 logging.error(f"ML inference fallback: {str(e)}")
         
         # Determine final health grade and message

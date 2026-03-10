@@ -10,7 +10,8 @@ load_dotenv()
 # Add project root to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from database.models import db
+from database.models import db, bcrypt, limiter
+from flask_jwt_extended import JWTManager
 
 # Local imports
 from api.auth import auth_bp
@@ -27,7 +28,8 @@ app = Flask(__name__,
 app.secret_key = os.getenv('SECRET_KEY', 'your-secret-key-here')
 
 # Configure Database
-DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///data/sqlite.db')
+basedir = os.path.abspath(os.path.dirname(__file__))
+DATABASE_URL = os.getenv('DATABASE_URL', f"sqlite:///{os.path.join(basedir, 'data', 'sqlite.db')}")
 # Quick fix for Render Postgres URLs (postgres:// -> postgresql://)
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
@@ -35,7 +37,16 @@ if DATABASE_URL.startswith("postgres://"):
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# Additional configs for JWT
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'your-super-secret-jwt-key')
+app.config['JWT_TOKEN_LOCATION'] = ['cookies']
+app.config['JWT_COOKIE_SECURE'] = False  # Set to True in production where HTTPS is active
+app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Disabled for simplicity, can enable later if needed
+
 db.init_app(app)
+bcrypt.init_app(app)
+limiter.init_app(app)
+jwt = JWTManager(app)
 
 # Create tables
 with app.app_context():
