@@ -898,3 +898,88 @@ body {
     flex-direction: column;
     gap: 10px;
 }
+
+/* ===== ENHANCED MOBILE RESPONSIVENESS ===== */
+@media (max-width: 768px) {
+    /* Header layout */
+    .dashboard-nav {
+        flex-wrap: wrap;
+    }
+    
+    .nav-left {
+        width: 100%;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .dashboard-user {
+        width: 100%;
+        justify-content: space-between;
+        border-top: 1px solid var(--border);
+        padding-top: 10px;
+    }
+
+    /* Welcome block */
+    .dashboard-welcome {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 20px;
+    }
+
+    .last-updated {
+        width: 100%;
+        justify-content: space-between;
+        margin-top: 10px;
+    }
+
+    /* Health Metrics inner cards */
+    .health-metrics, .sleep-metrics {
+        grid-template-columns: 1fr;
+    }
+
+    /* AI Analysis layout */
+    .analysis-layout {
+        flex-direction: column;
+    }
+
+    .detailed-analysis {
+        border-left: none;
+        border-top: 1px solid var(--border);
+        padding-left: 0;
+        padding-top: 20px;
+        margin-left: 0;
+    }
+
+    /* Action buttons */
+    .action-buttons {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .card-header {
+        flex-wrap: wrap;
+    }
+
+    .connection-status,
+    .analysis-confidence,
+    .sleep-period,
+    .vitals-timestamp,
+    .device-count {
+        position: relative;
+        top: 0;
+        right: 0;
+        margin-top: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .action-buttons {
+        grid-template-columns: 1fr;
+    }
+    .score-circle {
+        width: 130px;
+        height: 130px;
+    }
+    .score-number {
+        font-size: 2.5rem;
+    }
+}
