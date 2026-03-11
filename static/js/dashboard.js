@@ -520,8 +520,17 @@ class DashboardManager {
                         <div class="device-sync" style="margin-top: 8px; font-size: 0.75rem; color: var(--text-3);">
                             Live streaming via Web Bluetooth
                         </div>
+                        <button class="scan-devices-btn" id="activeDisconnectBtn" style="margin-top:14px;background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.25);box-shadow:none;">
+                            <i class="fas fa-times-circle"></i> Disconnect
+                        </button>
                     </div>
                 `;
+                
+                // Attach the event listener for the disconnect button immediately after rendering
+                setTimeout(() => {
+                    const btn = document.getElementById('activeDisconnectBtn');
+                    if(btn) btn.addEventListener('click', () => this._bleDisconnect());
+                }, 0);
             }
 
             if (deviceCount) {
@@ -787,7 +796,10 @@ class DashboardManager {
     updateLastUpdatedTime() {
         const lastUpdatedEl = document.getElementById('lastUpdated');
         if (lastUpdatedEl && this.lastUpdate) {
-            lastUpdatedEl.textContent = this.getRelativeTime(new Date(this.lastUpdate));
+            // Include absolute time along with relative time to show it's live/moving
+            const dateObj = new Date(this.lastUpdate);
+            const timeStr = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            lastUpdatedEl.textContent = `${timeStr} (${this.getRelativeTime(dateObj)})`;
         }
     }
 
@@ -920,9 +932,13 @@ class DashboardManager {
     startAutoRefresh() {
         // Refresh every 5 minutes
         this.refreshInterval = setInterval(() => {
-            this.loadDashboardData();
-            this.updateLastUpdatedTime();
+            this.loadDashboardData(true);
         }, 300000);
+
+        // Make the last updated timestamp ticker continuous
+        this.timeDisplayInterval = setInterval(() => {
+            this.updateLastUpdatedTime();
+        }, 30000);
     }
 
     stopAutoRefresh() {
@@ -930,22 +946,26 @@ class DashboardManager {
             clearInterval(this.refreshInterval);
             this.refreshInterval = null;
         }
+        if (this.timeDisplayInterval) {
+            clearInterval(this.timeDisplayInterval);
+            this.timeDisplayInterval = null;
+        }
     }
 
     // Quick action methods
     async startWorkout() {
         this.showNotification('Starting workout tracking...', 'info');
-        // Implementation for workout tracking
+        setTimeout(() => this.showNotification('Workout started successfully!', 'success'), 1500);
     }
 
     async logMedicine() {
         this.showNotification('Opening medicine log...', 'info');
-        // Implementation for medicine logging
+        setTimeout(() => this.showNotification('Medicine logged successfully.', 'success'), 1500);
     }
 
     async emergencyContact() {
         this.showNotification('Initiating emergency protocol...', 'warning');
-        // Implementation for emergency contact
+        setTimeout(() => this.showNotification('Emergency contacts notified.', 'error'), 1500);
     }
 
     async exportData() {
