@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime
 import sys
 import os
+import json
 
 # Add project root to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -16,7 +17,7 @@ dashboard_bp = Blueprint('dashboard', __name__)
 def dashboard(user_id):
     try:
         # Security check: Ensure requesting user matches token identity
-        identity = get_jwt_identity()
+        identity = json.loads(get_jwt_identity())
         if identity['id'] != user_id:
              return jsonify({'error': 'Unauthorized'}), 401
 

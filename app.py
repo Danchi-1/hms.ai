@@ -19,6 +19,9 @@ from api.predict import predict_bp
 from api.wearable import wearable_bp
 from api.dashboard import dashboard_bp
 from api.ai_advice import ai_bp
+from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+import json
+import json
 
 # Initialize Flask app
 app = Flask(__name__, 
@@ -81,26 +84,48 @@ def home():
 
 @app.route('/login')
 def login_page():
-    if 'user_id' in session:
-        return redirect(url_for('dashboard_page'))
+    try:
+        verify_jwt_in_request(optional=True)
+        raw_user = get_jwt_identity()
+        current_user = json.loads(raw_user) if raw_user else None
+        if current_user:
+            return redirect(url_for('dashboard_page'))
+    except Exception as e:
+        print(f"JWT Error: {e}")
+        pass
     return render_template('login.html')
 
 @app.route('/signup')
 def signup_page():
-    if 'user_id' in session:
-        return redirect(url_for('dashboard_page'))
+    try:
+        verify_jwt_in_request(optional=True)
+        raw_user = get_jwt_identity()
+        current_user = json.loads(raw_user) if raw_user else None
+        if current_user:
+            return redirect(url_for('dashboard_page'))
+    except Exception as e:
+        print(f"JWT Error: {e}")
+        pass
     return render_template('signup.html')
 
 @app.route('/dashboard')
 def dashboard_page():
-    if 'user_id' not in session:
+    try:
+        verify_jwt_in_request(optional=True)
+        raw_user = get_jwt_identity()
+        current_user = json.loads(raw_user) if raw_user else None
+        if not current_user:
+            return redirect(url_for('login_page'))
+    except Exception as e:
+        print(f"JWT Error: {e}")
         return redirect(url_for('login_page'))
     return render_template('dashboard.html')
 
 @app.route('/logout')
 def logout():
-    session.clear()
-    return redirect(url_for('login_page'))
+    response = redirect(url_for('login_page'))
+    response.set_cookie('access_token_cookie', '', expires=0)
+    return response
 
 @app.route('/api/health')
 def health_check():

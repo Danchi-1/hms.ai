@@ -29,7 +29,7 @@ def require_auth():
 class MockSession:
     def __getitem__(self, key):
         if key == 'user_id':
-            return get_jwt_identity()['id']
+            return json.loads(get_jwt_identity())['id']
         raise KeyError(key)
 
 session = MockSession()

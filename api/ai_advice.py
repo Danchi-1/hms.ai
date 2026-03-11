@@ -5,6 +5,7 @@ import google.generativeai as genai
 import json
 import logging
 import time
+import json
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -113,7 +114,7 @@ def get_health_advice():
         })
 
     try:
-        user_id = get_jwt_identity()['id']
+        user_id = json.loads(get_jwt_identity())['id']
         
         # 3. Check Cache First (Prevent API looping/exhaustion)
         current_time = time.time()

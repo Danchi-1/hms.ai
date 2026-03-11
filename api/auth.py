@@ -5,6 +5,7 @@ from flask_jwt_extended import (
 )
 from datetime import datetime
 import re
+import json
 import sys
 import os
 from functools import wraps
@@ -77,7 +78,7 @@ def register():
             'username': username,
             'email': email
         })
-        access_token = create_access_token(identity={'id': user_id, 'username': username, 'email': email})
+        access_token = create_access_token(identity=json.dumps({'id': user_id, 'username': username, 'email': email}))
         set_access_cookies(response, access_token)
         
         return response, 201
@@ -115,7 +116,7 @@ def login():
             'username': username,
             'email': email
         })
-        access_token = create_access_token(identity={'id': user_id, 'username': username, 'email': email})
+        access_token = create_access_token(identity=json.dumps({'id': user_id, 'username': username, 'email': email}))
         set_access_cookies(response, access_token)
         
         return response, 200
@@ -138,7 +139,7 @@ def logout():
 def get_profile():
     """Get current user profile"""
     try:
-        identity = get_jwt_identity()
+        identity = json.loads(get_jwt_identity())
         user_id = identity['id']
         username = identity['username']
         email = identity['email']
@@ -166,7 +167,7 @@ def get_profile():
 def update_profile():
     """Update user profile"""
     try:
-        identity = get_jwt_identity()
+        identity = json.loads(get_jwt_identity())
         data = request.get_json()
         if not data:
             return jsonify({'error': 'No data provided'}), 400
@@ -183,7 +184,8 @@ def update_profile():
 def check_auth():
     """Check if user is authenticated"""
     try:
-        identity = get_jwt_identity()
+        raw_identity = get_jwt_identity()
+        identity = json.loads(raw_identity) if raw_identity else None
         if identity:
             return jsonify({
                 'authenticated': True,
@@ -202,7 +204,7 @@ def check_auth():
 def change_password():
     """Change user password"""
     try:
-        identity = get_jwt_identity()
+        identity = json.loads(get_jwt_identity())
         data = request.get_json()
         if not data or not all(k in data for k in ['current_password', 'new_password']):
             return jsonify({'error': 'Missing required fields'}), 400
