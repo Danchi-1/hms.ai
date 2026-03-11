@@ -307,23 +307,68 @@ class DashboardManager {
         }
     }
 
-    updateAIAnalysis(data) {
+    async updateAIAnalysis(data) {
         // Calculate health score based on available data
-        const healthScore = this.calculateHealthScore(data.summary);
+        let healthScore = 50;
+        let scoreDescription = "Analyzing your health data...";
+        let confidence = 50;
+
+        try {
+            const hr_avg = data.summary.heart_rate?.avg_heart_rate || 0;
+            const steps = data.summary.activity?.avg_steps || 0;
+            const sleepHours = (data.summary.sleep?.avg_sleep_duration || 0) / 60;
+            const calories = data.summary.activity?.avg_calories || 0;
+
+            const response = await fetch(`${API_BASE}/api/predict/health-score`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    hr_avg: hr_avg,
+                    TotalSteps: steps,
+                    SleepHours: sleepHours,
+                    SedentaryMinutes: 0,
+                    VeryActiveMinutes: 0,
+                    FairlyActiveMinutes: 0,
+                    Calories: calories
+                })
+            });
+            
+            const result = await response.json();
+            if (response.ok && result.percentage !== undefined) {
+                healthScore = result.percentage;
+                scoreDescription = result.message;
+                if (result.details && result.details.ml_inference) {
+                    confidence = Math.round(result.details.ml_inference.confidence * 100);
+                }
+            } else {
+                healthScore = this.calculateHealthScore(data.summary);
+                scoreDescription = this.generateHealthScoreDescription(healthScore, data.summary);
+                confidence = this.calculateConfidence(data.summary);
+            }
+        } catch (error) {
+            console.error("Failed to fetch ML health score", error);
+            healthScore = this.calculateHealthScore(data.summary);
+            scoreDescription = this.generateHealthScoreDescription(healthScore, data.summary);
+            confidence = this.calculateConfidence(data.summary);
+        }
+        
         const healthScoreEl = document.getElementById('healthScore');
         const healthScoreCircle = document.getElementById('healthScoreCircle');
         const healthScoreDescription = document.getElementById('healthScoreDescription');
 
-        if (healthScoreEl) healthScoreEl.textContent = healthScore;
+        if (healthScoreEl) healthScoreEl.textContent = Math.round(healthScore);
         if (healthScoreCircle) {
-            healthScoreCircle.style.background = `conic-gradient(#48bb78 0deg ${healthScore * 3.6}deg, #e2e8f0 ${healthScore * 3.6}deg 360deg)`;
+            let color = '#48bb78';
+            if (healthScore < 60) color = '#f56565';
+            else if (healthScore < 80) color = '#ed8936';
+            healthScoreCircle.style.background = `conic-gradient(${color} 0deg ${healthScore * 3.6}deg, var(--bg-4) ${healthScore * 3.6}deg 360deg)`;
         }
 
         if (healthScoreDescription) {
-            healthScoreDescription.textContent = this.generateHealthScoreDescription(healthScore, data.summary);
+            healthScoreDescription.textContent = scoreDescription;
         }
 
-        // Generate AI recommendations
+        // Generate AI fallback recommendations until fetchAIAdvice handles Gemini
         const recommendations = this.generateRecommendations(data.summary);
         const recommendationList = document.getElementById('recommendationList');
         if (recommendationList && recommendations.length > 0) {
@@ -335,7 +380,6 @@ class DashboardManager {
         // Update confidence score
         const confidenceScore = document.getElementById('confidenceScore');
         if (confidenceScore) {
-            const confidence = this.calculateConfidence(data.summary);
             confidenceScore.textContent = confidence;
         }
     }

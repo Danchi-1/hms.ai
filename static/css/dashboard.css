@@ -975,11 +975,4 @@ body {
     .action-buttons {
         grid-template-columns: 1fr;
     }
-    .score-circle {
-        width: 130px;
-        height: 130px;
-    }
-    .score-number {
-        font-size: 2.5rem;
-    }
 }
