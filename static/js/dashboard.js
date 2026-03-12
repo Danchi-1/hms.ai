@@ -47,8 +47,6 @@ class DashboardManager {
 
     async initBluetooth() {
         if (!navigator.bluetooth) {
-            console.warn("Web Bluetooth is not supported in this browser.");
-            // Show persistent warning for unsupported browsers
             const userInfo = document.querySelector('.dashboard-user');
             if (userInfo) {
                 const warning = document.createElement('div');
@@ -59,18 +57,30 @@ class DashboardManager {
             return;
         }
 
-        // Try to auto-restore previously permitted devices (Persistent Connection)
+        // Check if user had a device connected before this reload
+        const lastDeviceName = localStorage.getItem('hms_last_ble_device');
+        if (lastDeviceName) {
+            // Show a reconnect prompt inside the device card
+            const deviceInfo = document.getElementById('deviceInfo');
+            if (deviceInfo) {
+                deviceInfo.innerHTML = `
+                    <div class="empty-state" style="padding:16px 12px;">
+                        <div class="empty-state-icon" style="font-size:2rem;">⌚</div>
+                        <div class="empty-state-title">${lastDeviceName}</div>
+                        <div class="empty-state-sub">This device was connected before. Reconnect to resume live syncing.</div>
+                        <button class="empty-state-cta" id="reconnectPromptBtn">
+                            <i class="fas fa-bluetooth"></i> Reconnect
+                        </button>
+                    </div>`;
+                document.getElementById('reconnectPromptBtn')?.addEventListener('click', () => this.scanForDevices());
+            }
+        }
+
+        // Also try the W3C persistent device API if browser supports it
         try {
             if (typeof navigator.bluetooth.getDevices === 'function') {
                 const devices = await navigator.bluetooth.getDevices();
-                if (devices.length > 0) {
-                    for (const device of devices) {
-                        // Hook up event listeners without strictly forcing a connection
-                        // until the device is actually in range and broadcasting again.
-                        device.addEventListener('gattserverdisconnected', () => this.handleDeviceDisconnect());
-                    }
-                    console.log(`Found ${devices.length} previously paired Bluetooth devices.`);
-                }
+                devices.forEach(d => d.addEventListener('gattserverdisconnected', () => this.handleDeviceDisconnect()));
             }
         } catch (error) {
             console.warn("Could not check for persistent Bluetooth devices:", error);
@@ -927,11 +937,14 @@ class DashboardManager {
         const recommendationList = document.getElementById('recommendationList');
         const summaryEl = document.getElementById('healthScoreDescription');
         const escalationEl = document.getElementById('escalationNotice');
+        const observationList = document.getElementById('observationList');
+        const observationsSection = document.getElementById('observationsSection');
+        const riskSection = document.getElementById('riskSection');
+        const riskInterpretationEl = document.getElementById('riskInterpretation');
+        const reportCta = document.getElementById('aiReportCta');
 
-        // Safety check for elements
         if (!recommendationList) return;
 
-        // Show loading state if not already loading
         if (recommendationList.children.length === 0 || !recommendationList.querySelector('.loading-recommendation')) {
             recommendationList.innerHTML = '<li class="loading-recommendation">🤖 AI is analyzing your latest vitals...</li>';
         }
@@ -948,12 +961,22 @@ class DashboardManager {
             const result = await response.json();
 
             if (response.ok) {
-                // Update Summary
-                if (result.summary && summaryEl) {
-                    summaryEl.textContent = result.summary;
+                // Update health score description / summary
+                if (result.summary && summaryEl) summaryEl.textContent = result.summary;
+
+                // Render Observations
+                if (result.observations && result.observations.length > 0 && observationList) {
+                    observationList.innerHTML = result.observations.map(o => `<li>${o}</li>`).join('');
+                    if (observationsSection) observationsSection.style.display = '';
                 }
 
-                // Update Recommendations
+                // Render Risk Interpretation
+                if (result.risk_interpretation && riskInterpretationEl) {
+                    riskInterpretationEl.textContent = result.risk_interpretation;
+                    if (riskSection) riskSection.style.display = '';
+                }
+
+                // Render Recommendations
                 recommendationList.innerHTML = '';
                 if (result.recommended_actions && result.recommended_actions.length > 0) {
                     result.recommended_actions.forEach(action => {
@@ -962,12 +985,10 @@ class DashboardManager {
                         recommendationList.appendChild(li);
                     });
                 } else {
-                    const li = document.createElement('li');
-                    li.textContent = "No specific actions recommended at this time.";
-                    recommendationList.appendChild(li);
+                    recommendationList.innerHTML = '<li>No specific actions recommended at this time.</li>';
                 }
 
-                // Handle Escalation
+                // Show escalation notice if applicable
                 if (escalationEl) {
                     if (result.escalation_notice) {
                         escalationEl.textContent = result.escalation_notice;
@@ -976,6 +997,9 @@ class DashboardManager {
                         escalationEl.style.display = 'none';
                     }
                 }
+
+                // Show "Generate Full Report" CTA once real AI data has loaded
+                if (reportCta) reportCta.style.display = 'block';
 
             } else {
                 console.warn('AI Advice failed:', result);
@@ -1118,7 +1142,10 @@ class DashboardManager {
             // Set global state
             this.isBluetoothConnected = true;
             this.connectedDeviceName = device.name || 'Bluetooth Device';
-            
+
+            // Persist name so we can show a reconnect prompt on the next page load
+            localStorage.setItem('hms_last_ble_device', this.connectedDeviceName);
+
             // Listen for disconnects
             device.addEventListener('gattserverdisconnected', () => this.handleDeviceDisconnect());
 
@@ -1277,6 +1304,9 @@ class DashboardManager {
         if (this.bleDevice && this.bleDevice.gatt.connected) {
             this.bleDevice.gatt.disconnect();
         }
+        // User explicitly disconnected — remove persistence so reconnect prompt doesn't reappear
+        localStorage.removeItem('hms_last_ble_device');
+        this.liveSpO2 = null;
         this._resetDeviceUI();
     }
 

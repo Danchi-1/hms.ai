@@ -122,7 +122,6 @@
                         </div>
                     </div>
 
-                    <!-- AI Health Analysis -->
                     <div class="dashboard-card" id="aiAnalysisCard">
                         <div class="card-header">
                             <h3 class="card-title">AI Health Analysis</h3>
@@ -148,6 +147,19 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- AI Observations -->
+                            <div class="analysis-item" id="observationsSection" style="display:none">
+                                <h4>📋 Observations</h4>
+                                <ul class="recommendation-list" id="observationList"></ul>
+                            </div>
+
+                            <!-- Risk Interpretation -->
+                            <div class="analysis-item" id="riskSection" style="display:none">
+                                <h4>⚠️ Risk Context</h4>
+                                <p id="riskInterpretation" style="font-size:0.875rem;color:var(--text-2);line-height:1.6;"></p>
+                            </div>
+
                             <div class="recommendations">
                                 <h4>AI Recommendations</h4>
                                 <ul class="recommendation-list" id="recommendationList">
@@ -157,6 +169,14 @@
                                     </li>
                                 </ul>
                                 <div id="escalationNotice" class="escalation-notice" style="display: none;"></div>
+                            </div>
+
+                            <!-- Intent placeholder for upcoming feature -->
+                            <div id="aiReportCta" style="margin-top:16px;padding:14px;background:rgba(102,126,234,0.07);border:1px solid rgba(102,126,234,0.2);border-radius:var(--radius-md);display:none;">
+                                <p style="font-size:0.82rem;color:var(--text-2);margin-bottom:10px;">🔬 A full personalized health report is available based on this analysis.</p>
+                                <button id="generateReportBtn" style="padding:8px 18px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:var(--radius-full);font-size:0.82rem;font-weight:600;cursor:pointer;transition:opacity 0.2s;">
+                                    Generate Full Report
+                                </button>
                             </div>
                         </div>
                     </div>
