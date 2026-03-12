@@ -21,6 +21,7 @@ class DashboardManager {
         this.bleReadingsBatch = []; // Buffer for reducing API calls
         this.isBluetoothConnected = false;
         this.connectedDeviceName = null;
+        this.liveSpO2 = null; // Tracks the most recent SpO2 reading from BLE simulation
 
         this.init();
     }
@@ -289,26 +290,24 @@ class DashboardManager {
             }
         }
 
-        // Trigger AI analysis if we have data
-        // We use summary data for the context
-        if (summary.heart_rate) {
-            const hr = summary.heart_rate.avg_heart_rate;
-            // Get SpO2 from raw data if available, or simulate for now since summary structure varies
-            // For now, we pass what we have
-            this.fetchAIAdvice({
-                metrics: {
-                    heart_rate: hr,
-                    spo2: 98, // Default or fetch real if available in summary
-                    steps: summary.activity ? summary.activity.avg_steps : 0,
-                    timestamp: new Date().toISOString()
-                },
-                risk_level: this.getHeartRateStatus(hr) === 'Normal' ? 'Low' : 'Medium'
-            });
-        }
+        // Trigger Gemini AI analysis unconditionally — pass whatever data we have.
+        // Even partial data is useful; Gemini handles missing fields gracefully.
+        const hr = summary.heart_rate?.avg_heart_rate || null;
+        const steps = summary.activity?.avg_steps || 0;
+        const riskLevel = hr ? (this.getHeartRateStatus(hr) === 'Normal' ? 'Low' : 'Medium') : 'Unknown';
+
+        this.fetchAIAdvice({
+            metrics: {
+                heart_rate: hr ?? 'N/A',
+                spo2: this.liveSpO2 ?? (hr ? 98 : 'N/A'), // Use live BLE value when available
+                steps: steps,
+                timestamp: new Date().toISOString()
+            },
+            risk_level: riskLevel
+        });
     }
 
     async updateAIAnalysis(data) {
-        // Calculate health score based on available data
         let healthScore = 50;
         let scoreDescription = "Analyzing your health data...";
         let confidence = 50;
@@ -323,21 +322,17 @@ class DashboardManager {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    hr_avg: hr_avg,
-                    TotalSteps: steps,
-                    SleepHours: sleepHours,
-                    SedentaryMinutes: 0,
-                    VeryActiveMinutes: 0,
-                    FairlyActiveMinutes: 0,
+                    hr_avg, TotalSteps: steps, SleepHours: sleepHours,
+                    SedentaryMinutes: 0, VeryActiveMinutes: 0, FairlyActiveMinutes: 0,
                     Calories: calories
                 })
             });
-            
+
             const result = await response.json();
             if (response.ok && result.percentage !== undefined) {
                 healthScore = result.percentage;
                 scoreDescription = result.message;
-                if (result.details && result.details.ml_inference) {
+                if (result.details?.ml_inference) {
                     confidence = Math.round(result.details.ml_inference.confidence * 100);
                 }
             } else {
@@ -351,7 +346,8 @@ class DashboardManager {
             scoreDescription = this.generateHealthScoreDescription(healthScore, data.summary);
             confidence = this.calculateConfidence(data.summary);
         }
-        
+
+        // Render health score circle
         const healthScoreEl = document.getElementById('healthScore');
         const healthScoreCircle = document.getElementById('healthScoreCircle');
         const healthScoreDescription = document.getElementById('healthScoreDescription');
@@ -363,24 +359,19 @@ class DashboardManager {
             else if (healthScore < 80) color = '#ed8936';
             healthScoreCircle.style.background = `conic-gradient(${color} 0deg ${healthScore * 3.6}deg, var(--bg-4) ${healthScore * 3.6}deg 360deg)`;
         }
+        if (healthScoreDescription) healthScoreDescription.textContent = scoreDescription;
 
-        if (healthScoreDescription) {
-            healthScoreDescription.textContent = scoreDescription;
-        }
-
-        // Generate AI fallback recommendations until fetchAIAdvice handles Gemini
-        const recommendations = this.generateRecommendations(data.summary);
-        const recommendationList = document.getElementById('recommendationList');
-        if (recommendationList && recommendations.length > 0) {
-            recommendationList.innerHTML = recommendations.map(rec =>
-                `<li><span class="rec-icon">${rec.icon}</span> ${rec.text}</li>`
-            ).join('');
-        }
-
-        // Update confidence score
+        // Confidence score from ML
         const confidenceScore = document.getElementById('confidenceScore');
-        if (confidenceScore) {
-            confidenceScore.textContent = confidence;
+        if (confidenceScore) confidenceScore.textContent = confidence;
+
+        // Recommendations are populated exclusively by fetchAIAdvice() (Gemini).
+        // Show a loading state here — Gemini will overwrite it asynchronously.
+        // This prevents the old race condition where local fallbacks were immediately
+        // overwritten by Gemini, causing a visible flicker.
+        const recommendationList = document.getElementById('recommendationList');
+        if (recommendationList) {
+            recommendationList.innerHTML = '<li class="loading-recommendation">🤖 AI is analyzing your vitals...</li>';
         }
     }
 
@@ -1238,6 +1229,7 @@ class DashboardManager {
 
                 // Update Blood Oxygen (95-100)
                 const spO2 = Math.floor(Math.random() * (100 - 95 + 1) + 95);
+                this.liveSpO2 = spO2; // Store for use in AI advice payload
                 const oxEl = document.getElementById('bloodOxygen');
                 if(oxEl) oxEl.textContent = `${spO2}%`;
                 
