@@ -439,15 +439,21 @@ class DashboardManager {
                 datasets: [{
                     label: 'Hours Slept',
                     data: sleepHours,
-                    borderColor: '#4c51bf',
-                    backgroundColor: 'rgba(76, 81, 191, 0.1)',
+                    borderColor: '#0d9488',
+                    backgroundColor: 'rgba(13, 148, 136, 0.12)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#0d9488',
+                    pointRadius: 4,
                     tension: 0.4,
                     yAxisID: 'y'
                 }, {
                     label: 'Sleep Efficiency (%)',
                     data: efficiency,
-                    borderColor: '#6b46c1',
-                    backgroundColor: 'rgba(107, 70, 193, 0.1)',
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#10b981',
+                    pointRadius: 4,
                     tension: 0.4,
                     yAxisID: 'y1'
                 }]
@@ -455,31 +461,35 @@ class DashboardManager {
             options: {
                 responsive: true,
                 plugins: {
-                    legend: {
-                        display: false
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(10, 15, 28, 0.9)',
+                        borderColor: 'rgba(13, 148, 136, 0.3)',
+                        borderWidth: 1,
+                        titleColor: '#f0fdf4',
+                        bodyColor: '#a3c4bc'
                     }
                 },
                 scales: {
+                    x: {
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#6b7280' }
+                    },
                     y: {
                         type: 'linear',
                         display: true,
                         position: 'left',
-                        title: {
-                            display: true,
-                            text: 'Hours'
-                        }
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#6b7280' },
+                        title: { display: true, text: 'Hours', color: '#6b7280' }
                     },
                     y1: {
                         type: 'linear',
                         display: true,
                         position: 'right',
-                        title: {
-                            display: true,
-                            text: 'Efficiency %'
-                        },
-                        grid: {
-                            drawOnChartArea: false,
-                        },
+                        grid: { drawOnChartArea: false },
+                        ticks: { color: '#6b7280' },
+                        title: { display: true, text: 'Efficiency %', color: '#6b7280' }
                     }
                 }
             }
@@ -807,11 +817,31 @@ class DashboardManager {
         const loadingSpinner = document.getElementById('loadingSpinner');
         const dashboardPage = document.getElementById('dashboardPage');
 
-        if (loadingSpinner) {
-            loadingSpinner.classList.toggle('active', show);
-        }
-        if (dashboardPage) {
-            dashboardPage.classList.toggle('active', !show);
+        if (loadingSpinner) loadingSpinner.classList.toggle('active', show);
+        if (dashboardPage) dashboardPage.classList.toggle('active', !show);
+
+        if (show) {
+            // Inject skeleton placeholders into each metric card
+            const skeletonValue = () => `<span class="skeleton skeleton-value"></span>`;
+            const skeletonText  = () => `<span class="skeleton skeleton-text" style="width:70px"></span>`;
+
+            const heartRateEl = document.getElementById('heartRate');
+            if (heartRateEl && heartRateEl.textContent === '--') {
+                heartRateEl.innerHTML = skeletonValue();
+            }
+            const stepsEl = document.getElementById('steps');
+            if (stepsEl && stepsEl.textContent === '--') stepsEl.innerHTML = skeletonValue();
+            const caloriesEl = document.getElementById('calories');
+            if (caloriesEl && caloriesEl.textContent === '--') caloriesEl.innerHTML = skeletonValue();
+
+            const sleepHoursEl = document.getElementById('sleepHours');
+            if (sleepHoursEl && sleepHoursEl.textContent === '--') sleepHoursEl.innerHTML = skeletonValue();
+
+            // Skeleton for health score circle
+            const scoreCircle = document.getElementById('healthScoreCircle');
+            if (scoreCircle && document.getElementById('healthScore')?.textContent === '--') {
+                scoreCircle.innerHTML = `<span class="skeleton skeleton-circle" style="position:absolute;inset:0;border-radius:50%"></span>`;
+            }
         }
     }
 
@@ -831,18 +861,58 @@ class DashboardManager {
     }
 
     loadFallbackData() {
-        // Show empty/waiting state — do not populate with fake values.
-        // Metrics stay as '--' until a real BLE device connects.
         const welcomeMessage = document.getElementById('welcomeMessage');
-        if (welcomeMessage) {
-            welcomeMessage.textContent = 'Connect a device to start seeing your health data.';
+        if (welcomeMessage) welcomeMessage.textContent = 'Connect a device to start seeing your health data.';
+
+        // ── Empty state for Health Metrics card ──
+        const healthMetrics = document.querySelector('#healthDataCard .health-metrics');
+        if (healthMetrics) {
+            healthMetrics.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">💓</div>
+                    <div class="empty-state-title">Waiting for your first sync</div>
+                    <div class="empty-state-sub">Pair a smartwatch or fitness band to start seeing live health data.</div>
+                </div>`;
         }
-        console.log('No API data available. Waiting for device connection.');
+
+        // ── Empty state for Vital Signs card ──
+        const vitals = document.querySelector('#vitalSignsCard .vital-signs');
+        if (vitals) {
+            vitals.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">⌚</div>
+                    <div class="empty-state-title">No vitals yet</div>
+                    <div class="empty-state-sub">Connect your device to receive live blood pressure, oxygen, and temperature readings.</div>
+                </div>`;
+        }
+
+        // ── Empty state for Sleep card ──
+        const sleepMetrics = document.querySelector('#sleepCard .sleep-metrics');
+        if (sleepMetrics) {
+            sleepMetrics.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">😴</div>
+                    <div class="empty-state-title">No sleep data yet</div>
+                    <div class="empty-state-sub">Sleep tracking will appear here after your first night with the device connected.</div>
+                </div>`;
+        }
+
+        console.log('No API data available. Showing empty states.');
     }
 
     showNotification(message, type = 'info') {
         const container = document.getElementById('notificationContainer');
         if (!container) return;
+
+        // Deduplicate: skip if an identical message toast already exists
+        const existing = container.querySelectorAll('.notification-message');
+        for (const el of existing) {
+            if (el.textContent === message) return;
+        }
+
+        // Cap: remove oldest if already at 3
+        const toasts = container.querySelectorAll('.notification');
+        if (toasts.length >= 3) toasts[0].remove();
 
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
@@ -858,9 +928,7 @@ class DashboardManager {
         });
 
         setTimeout(() => {
-            if (notification.parentNode) {
-                notification.remove();
-            }
+            if (notification.parentNode) notification.remove();
         }, 5000);
     }
 
