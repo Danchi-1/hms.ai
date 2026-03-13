@@ -1047,8 +1047,12 @@ class DashboardManager {
     }
 
     async emergencyContact() {
-        this.showNotification('Initiating emergency protocol...', 'warning');
-        setTimeout(() => this.showNotification('Emergency contacts notified.', 'error'), 1500);
+        // Delegate to the full EmergencyEngine
+        if (window.EmergencyEngine) {
+            EmergencyEngine.start('manual');
+        } else {
+            this.showNotification('Emergency system loading... try again.', 'warning');
+        }
     }
 
     async exportData() {
@@ -1179,6 +1183,12 @@ class DashboardManager {
                     const flags = value.getUint8(0);
                     const hr = (flags & 0x01) ? value.getUint16(1, true) : value.getUint8(1);
 
+                    // Expose globally for FallDetector + EmergencyEngine
+                    window._latestHR = hr;
+                    if (!window._hrHistory) window._hrHistory = [];
+                    window._hrHistory.push(hr);
+                    if (window._hrHistory.length > 20) window._hrHistory.shift();
+
                     // Update dashboard metric live
                     const hrEl = document.getElementById('heartRate');
                     if (hrEl) hrEl.textContent = hr;
@@ -1187,6 +1197,11 @@ class DashboardManager {
                     if (hrStatus) {
                         hrStatus.textContent = hr < 60 ? 'Low' : hr > 100 ? 'High' : 'Normal';
                         hrStatus.className = `status-indicator ${hr < 60 || hr > 100 ? 'status-warning' : 'status-normal'}`;
+                    }
+
+                    // CRITICAL THRESHOLD CHECK — trigger emergency if vitals are dangerous
+                    if ((hr > 130 || hr < 40) && window.EmergencyEngine && !EmergencyEngine._active) {
+                        EmergencyEngine.start('vitals', { heart_rate: hr });
                     }
 
                     // Forward reading to backend to persist
@@ -1281,12 +1296,17 @@ class DashboardManager {
                 // ── Heart Rate — only simulate when no real GATT HR stream ─
                 if (!heartRateChar) {
                     const hr = Math.floor(Math.random() * (85 - 62 + 1) + 62);
+                    window._latestHR = hr; // Expose for FallDetector
                     const hrEl = document.getElementById('heartRate');
                     if (hrEl) hrEl.textContent = hr;
                     const hrStatus = document.getElementById('heartRateStatus');
                     if (hrStatus) {
                         hrStatus.textContent = hr >= 60 && hr <= 100 ? 'Normal' : hr < 60 ? 'Low' : 'High';
                         hrStatus.className = `status-indicator ${hr >= 60 && hr <= 100 ? 'status-normal' : 'status-warning'}`;
+                    }
+                    // Check threshold even on simulated HR
+                    if ((hr > 130 || hr < 40) && window.EmergencyEngine && !EmergencyEngine._active) {
+                        EmergencyEngine.start('vitals', { heart_rate: hr });
                     }
                 }
 

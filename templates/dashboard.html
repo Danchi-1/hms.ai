@@ -4,18 +4,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0d9488">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="HMS-AI">
     <title>Dashboard — HMS-AI Health Monitoring</title>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/emergency.css') }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
-        /* Inline override for chart dark mode */
-        canvas {
-            display: block;
-        }
+        canvas { display: block; }
     </style>
 </head>
 
@@ -55,6 +59,10 @@
                                 <span id="userEmail" class="user-email">Loading...</span>
                             </div>
                         </div>
+                        <!-- 🔴 Emergency button (always visible) -->
+                        <button class="emergency-header-btn" id="globalEmergencyBtn" onclick="window.EmergencyEngine && EmergencyEngine.start('manual')">
+                            <i class="fas fa-exclamation-triangle"></i> EMERGENCY
+                        </button>
                         <button class="logout-btn desktop-only" id="logoutBtn">Logout</button>
                     </div>
                 </div>
@@ -302,10 +310,32 @@
         </div>
     </div>
 
+    <!-- Emergency Response Modal (hidden) -->
+    <div id="emergencyModal"></div>
+
     <!-- Notification System -->
     <div id="notificationContainer" class="notification-container"></div>
 
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=4.0"></script>
+    <!-- Script load order: fall detection → emergency engine → dashboard -->
+    <script src="{{ url_for('static', filename='js/fall_detection.js') }}?v=1.0"></script>
+    <script src="{{ url_for('static', filename='js/emergency.js') }}?v=1.0"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=4.1"></script>
+
+    <script>
+        // ── PWA service worker registration ──────────────────────────────
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/service-worker.js')
+                .then(reg => console.info('[PWA] Service worker registered:', reg.scope))
+                .catch(err => console.warn('[PWA] SW registration failed:', err));
+
+            // Relay SW messages to EmergencyDB flush
+            navigator.serviceWorker.addEventListener('message', e => {
+                if (e.data?.type === 'FLUSH_EMERGENCY_QUEUE' && window.EmergencyDB) {
+                    EmergencyDB.flush();
+                }
+            });
+        }
+    </script>
 </body>
 
 </html>

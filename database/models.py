@@ -26,6 +26,7 @@ class User(db.Model):
     sleep_data = db.relationship('SleepData', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     predictions = db.relationship('HealthPrediction', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     devices = db.relationship('DeviceConnection', backref='user', lazy='dynamic', cascade='all, delete-orphan')
+    emergency_contacts = db.relationship('EmergencyContact', backref='user', lazy='dynamic', cascade='all, delete-orphan')
 
     def check_password(self, password):
         # Gracefully handle existing simple SHA-256 hashes (length 64) during migration
@@ -201,6 +202,29 @@ class DatabaseManager:
         )
         db.session.add(prediction)
         db.session.commit()
+
+
+class EmergencyContact(db.Model):
+    __tablename__ = 'emergency_contacts'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    phone_number = db.Column(db.String(30), nullable=False)
+    relationship = db.Column(db.String(50), nullable=False)  # family / doctor / guardian
+    priority = db.Column(db.Integer, default=1)  # 1 = highest
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'phone_number': self.phone_number,
+            'relationship': self.relationship,
+            'priority': self.priority,
+            'created_at': self.created_at.isoformat()
+        }
+
 
 # Initialize global wrapper for backward compatibility
 db_manager = DatabaseManager()

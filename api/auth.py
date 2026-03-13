@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import (
-    create_access_token, set_access_cookies, unset_jwt_cookies,
+    create_access_token, create_refresh_token,
+    set_access_cookies, set_refresh_cookies, unset_jwt_cookies,
     jwt_required, get_jwt_identity, verify_jwt_in_request
 )
 from datetime import datetime
@@ -79,7 +80,9 @@ def register():
             'email': email
         })
         access_token = create_access_token(identity=json.dumps({'id': user_id, 'username': username, 'email': email}))
+        refresh_token = create_refresh_token(identity=json.dumps({'id': user_id, 'username': username, 'email': email}))
         set_access_cookies(response, access_token)
+        set_refresh_cookies(response, refresh_token)
         
         return response, 201
         
@@ -117,7 +120,9 @@ def login():
             'email': email
         })
         access_token = create_access_token(identity=json.dumps({'id': user_id, 'username': username, 'email': email}))
+        refresh_token = create_refresh_token(identity=json.dumps({'id': user_id, 'username': username, 'email': email}))
         set_access_cookies(response, access_token)
+        set_refresh_cookies(response, refresh_token)
         
         return response, 200
         
@@ -133,6 +138,20 @@ def logout():
         return response, 200
     except Exception as e:
         return jsonify({'error': f'Logout failed: {str(e)}'}), 500
+
+
+@auth_bp.route('/refresh', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh_token():
+    """Silent token refresh — called automatically by frontend fetch interceptor."""
+    try:
+        identity = get_jwt_identity()
+        new_access_token = create_access_token(identity=identity)
+        response = jsonify({'message': 'Token refreshed'})
+        set_access_cookies(response, new_access_token)
+        return response, 200
+    except Exception as e:
+        return jsonify({'error': f'Token refresh failed: {str(e)}'}), 401
 
 @auth_bp.route('/profile', methods=['GET'])
 @jwt_required()
