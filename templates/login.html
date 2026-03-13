@@ -30,7 +30,7 @@
         <!-- ===== LEFT PANEL ===== -->
         <div class="auth-left">
             <div class="auth-left-brand">
-                <a href="{{ url_for('home') }}" class="logo" style="display:flex;align-items:center;gap:8px;"><img src="/static/icons/icon-192.png" alt="HMS-AI" style="width:36px;height:36px;border-radius:10px;">HMS-AI</a>
+                <a href="{{ url_for('home') }}" class="logo" style="display:flex;align-items:center;gap:8px;"><img src="/static/icons/icon-192.png" alt="HMS-AI" style="width:36px;height:36px;">HMS-AI</a>
                 <p>AI-Powered Health Monitoring</p>
             </div>
 
@@ -112,10 +112,10 @@
 
                 {% if dev_email %}
                 <!-- Developer Quick-Login (shown only in FLASK_DEBUG=true) -->
-                <div style="margin-top:20px;padding:14px 18px;background:rgba(13,148,136,0.07);border:1px solid rgba(13,148,136,0.2);border-radius:12px;">
+                <div style="margin-top:20px;padding:14px 18px;background:rgba(13,148,136,0.07);border:1px solid rgba(13,148,136,0.2);">
                     <p style="font-size:0.78rem;color:var(--text-3);margin-bottom:10px;">🛠️ Developer mode — quick login</p>
                     <button type="button" id="devLoginBtn"
-                        style="width:100%;padding:10px;background:linear-gradient(135deg,#0d9488,#0891b2);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.85rem;cursor:pointer;">
+                        style="width:100%;padding:10px;background:linear-gradient(135deg,#0d9488,#0891b2);color:#fff;border:none;font-weight:700;font-size:0.85rem;cursor:pointer;">
                         Login as Danchi (Dev)
                     </button>
                 </div>
