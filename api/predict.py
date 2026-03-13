@@ -38,7 +38,7 @@ def load_health_model():
         return False
 
 # 2. Fix the predict_health_risk route
-@predict_bp.route('/predict/health-risk', methods=['POST'])
+@predict_bp.route('/health-risk', methods=['POST'])
 def predict_health_risk():
     """Predict health risk based on user data"""
     try:
@@ -105,7 +105,7 @@ def predict_health_risk():
         }), 500
 
 # 3. Fix the batch prediction route
-@predict_bp.route('/predict/batch', methods=['POST'])
+@predict_bp.route('/batch', methods=['POST'])
 def predict_batch():
     """Predict health risk for multiple users"""
     try:
@@ -163,7 +163,7 @@ def predict_batch():
         }), 500
 
 # 4. Fix the get_model_info route
-@predict_bp.route('/predict/model-info', methods=['GET'])
+@predict_bp.route('/model-info', methods=['GET'])
 def get_model_info():
     """Get information about the loaded model"""
     try:
@@ -189,7 +189,7 @@ def get_model_info():
         }), 500
 
 # 5. Fix the incomplete calculate_health_score function
-@predict_bp.route('/predict/health-score', methods=['POST'])
+@predict_bp.route('/health-score', methods=['POST'])
 def calculate_health_score():
     """Calculate a hybrid health score based on heuristics and ML prediction"""
     try:

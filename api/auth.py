@@ -14,7 +14,7 @@ from functools import wraps
 # Add project root to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from database.models import db_manager as db, limiter
+from database.models import db_manager as db, limiter, User
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -65,12 +65,20 @@ def register():
         is_valid, message = validate_password(password)
         if not is_valid:
             return jsonify({'error': message}), 400
-        
+
+        # Explicit uniqueness checks (catches duplicates before DB insert)
+        if User.query.filter_by(username=username).first():
+            return jsonify({'error': 'Username already taken. Please choose another.'}), 409
+
+        if User.query.filter_by(email=email).first():
+            return jsonify({'error': 'An account with this email already exists.'}), 409
+
         # Create user
         user_id = db.create_user(username, email, password)
-        
+
         if user_id is None:
-            return jsonify({'error': 'Username or email already exists'}), 409
+            return jsonify({'error': 'Registration failed. Please try again.'}), 409
+
         
         # Set JWT cookies
         response = jsonify({

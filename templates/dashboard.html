@@ -40,7 +40,10 @@
             <div class="container">
                 <div class="dashboard-nav">
                     <div class="nav-left">
-                        <div class="dashboard-logo"><img src="/static/icons/icon-192.png" alt="HMS-AI" style="width:32px;height:32px;vertical-align:middle;margin-right:8px;">HMS-AI</div>
+                        <!-- Logo only — no text -->
+                        <a href="{{ url_for('home') }}" class="dashboard-logo">
+                            <img src="/static/icons/icon-192.png" alt="HMS-AI" style="width:38px;height:38px;">
+                        </a>
                         <button class="mobile-menu-toggle" id="mobileMenuBtn" aria-label="Menu">
                             <i class="fas fa-stream"></i>
                         </button>
@@ -50,28 +53,50 @@
                         <a href="{{ url_for('home') }}" class="home-button">
                             <i class="fas fa-home"></i> Home
                         </a>
-                        <button class="logout-btn mobile-only" onclick="window.dashboardManager.logout()">
-                            Logout
-                        </button>
                     </div>
 
                     <div class="dashboard-user">
-                        <div class="user-info">
-                            <div class="user-avatar" id="userAvatar"></div>
-                            <div class="user-details desktop-only">
-                                <span id="userName">Loading...</span>
-                                <span id="userEmail" class="user-email">Loading...</span>
-                            </div>
-                        </div>
-                        <!-- 🔴 Emergency button (always visible) -->
-                        <button class="emergency-header-btn" id="globalEmergencyBtn" onclick="window.EmergencyEngine && EmergencyEngine.start('manual')" disabled title="Connect a device to enable emergency">
+                        <!-- 🔴 Emergency (gated on BLE connect) -->
+                        <button class="emergency-header-btn" id="globalEmergencyBtn"
+                            onclick="window.EmergencyEngine && EmergencyEngine.start('manual')"
+                            disabled title="Connect a device to enable emergency">
                             <i class="fas fa-exclamation-triangle"></i> EMERGENCY
                         </button>
-                        <button class="logout-btn desktop-only" id="logoutBtn">Logout</button>
+
+                        <!-- Avatar dropdown -->
+                        <div class="avatar-menu" id="avatarMenu">
+                            <button class="avatar-circle" id="avatarBtn" aria-label="User menu" aria-expanded="false">
+                                <span id="avatarInitials">?</span>
+                            </button>
+
+                            <div class="avatar-dropdown" id="avatarDropdown" role="menu">
+                                <div class="avatar-dropdown-header">
+                                    <div class="avatar-circle avatar-circle--sm" aria-hidden="true">
+                                        <span id="avatarInitials2">?</span>
+                                    </div>
+                                    <div>
+                                        <div class="avatar-name" id="userName">Loading...</div>
+                                        <div class="avatar-email" id="userEmail">Loading...</div>
+                                    </div>
+                                </div>
+                                <div class="avatar-dropdown-divider"></div>
+                                <a href="#" class="avatar-dropdown-item" id="profileLink">
+                                    <i class="fas fa-user-circle"></i> My Profile
+                                </a>
+                                <a href="#" class="avatar-dropdown-item" id="settingsLink">
+                                    <i class="fas fa-sliders-h"></i> Settings
+                                </a>
+                                <div class="avatar-dropdown-divider"></div>
+                                <button class="avatar-dropdown-item avatar-dropdown-item--danger" id="logoutBtn">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
 
         <!-- ===== DASHBOARD CONTENT ===== -->
         <div class="dashboard-content">
