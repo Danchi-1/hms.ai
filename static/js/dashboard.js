@@ -128,6 +128,28 @@ class DashboardManager {
             }
         });
 
+        // ── Mobile nav dropdown (dashboard doesn't load main.js) ──────────
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const navLinks = document.getElementById('navLinks');
+        if (mobileMenuBtn && navLinks) {
+            mobileMenuBtn.addEventListener('click', () => {
+                navLinks.classList.toggle('active');
+                const icon = mobileMenuBtn.querySelector('i');
+                if (navLinks.classList.contains('active')) {
+                    icon.className = 'fas fa-times';
+                } else {
+                    icon.className = 'fas fa-stream';
+                }
+            });
+            document.addEventListener('click', (e) => {
+                if (!navLinks.contains(e.target) && !mobileMenuBtn.contains(e.target) && navLinks.classList.contains('active')) {
+                    navLinks.classList.remove('active');
+                    const icon = mobileMenuBtn.querySelector('i');
+                    if (icon) icon.className = 'fas fa-stream';
+                }
+            });
+        }
+
         // Window focus event to refresh data
         window.addEventListener('focus', () => {
             if (this.lastUpdate && Date.now() - this.lastUpdate > 300000) { // 5 minutes
@@ -1153,13 +1175,26 @@ class DashboardManager {
             // Listen for disconnects
             device.addEventListener('gattserverdisconnected', () => this.handleDeviceDisconnect());
 
-            // Step 3: Try to read battery level
-            let batteryLevel = '--';
+            // Step 3: Try to read battery level (standard service + notification fallback for Redmi)
+            let batteryLevel = null;
             try {
                 const battService = await server.getPrimaryService(BATTERY_SERVICE);
                 const battChar = await battService.getCharacteristic(BATTERY_CHARACTERISTIC);
-                const battValue = await battChar.readValue();
-                batteryLevel = battValue.getUint8(0) + '%';
+                // Try readValue first — some devices (e.g. Redmi Band) silently reject but support notifications
+                try {
+                    const battValue = await battChar.readValue();
+                    batteryLevel = battValue.getUint8(0);
+                } catch (_) {
+                    // Fallback: subscribe to notification and take the first value
+                    battChar.addEventListener('characteristicvaluechanged', (e) => {
+                        if (batteryLevel === null) {
+                            batteryLevel = e.target.value.getUint8(0);
+                            const battEl = document.getElementById('batteryLevel');
+                            if (battEl) battEl.textContent = `${batteryLevel}%`;
+                        }
+                    });
+                    await battChar.startNotifications();
+                }
             } catch (_) { /* device may not expose battery service */ }
 
             // Step 4: Try to read manufacturer name
@@ -1213,6 +1248,7 @@ class DashboardManager {
 
             // Step 6: Update the device card UI
             const deviceName = device.name || 'Health Device';
+            const battDisplay = batteryLevel !== null ? `${batteryLevel}%` : 'N/A';
             if (deviceInfo) {
                 deviceInfo.innerHTML = `
                     <div class="device-item">
@@ -1225,8 +1261,8 @@ class DashboardManager {
                         </div>
                         <div style="display:flex;gap:8px;flex-wrap:wrap;">
                             <span class="status-indicator status-normal">● Connected</span>
-                            <span class="status-indicator status-excellent">🔋 ${batteryLevel}</span>
-                            ${heartRateChar ? '<span class="status-indicator status-normal">❤️ HR Live</span>' : ''}
+                            <span class="status-indicator status-excellent" id="batteryLevel">🔋 ${battDisplay}</span>
+                            ${heartRateChar ? '<span class="status-indicator status-normal">❤️ HR Live</span>' : '<span class="status-indicator status-warning">❤️ HR: No GATT stream</span>'}
                         </div>
                         <button class="scan-devices-btn" id="disconnectBtn"
                             style="margin-top:14px;background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.25);box-shadow:none;">
@@ -1241,6 +1277,13 @@ class DashboardManager {
 
             if (deviceCount) deviceCount.textContent = '1 device';
 
+            // ── Enable the global emergency button now that a device is connected ──
+            const emergencyBtn = document.getElementById('globalEmergencyBtn');
+            if (emergencyBtn) {
+                emergencyBtn.removeAttribute('disabled');
+                emergencyBtn.title = 'Tap to start emergency protocol';
+            }
+
             // Listen for disconnection events
             device.addEventListener('gattserverdisconnected', () => {
                 this.showNotification(`${deviceName} disconnected`, 'warning');
@@ -1248,6 +1291,12 @@ class DashboardManager {
                     clearInterval(this.simulatedVitalsInterval);
                 }
                 this._resetDeviceUI();
+                // Disable emergency button again on disconnect
+                const btn = document.getElementById('globalEmergencyBtn');
+                if (btn) {
+                    btn.setAttribute('disabled', 'true');
+                    btn.title = 'Connect a device to enable emergency';
+                }
             });
 
             this.showNotification(`✅ Connected to ${deviceName}${heartRateChar ? ' — Live heart rate active' : ''}`, 'success');
@@ -1293,51 +1342,46 @@ class DashboardManager {
                 const tsEl = document.getElementById('vitalsTimestamp');
                 if (tsEl) tsEl.textContent = `Last reading: ${new Date().toLocaleTimeString()}`;
 
-                // ── Heart Rate — only simulate when no real GATT HR stream ─
+                // ── Heart Rate ─────────────────────────────────────────────
+                // Only updated from real GATT notifications (set on heartRateChar listener above).
+                // If no GATT HR stream available, display a neutral state — do NOT fake it.
                 if (!heartRateChar) {
-                    const hr = Math.floor(Math.random() * (85 - 62 + 1) + 62);
-                    window._latestHR = hr; // Expose for FallDetector
                     const hrEl = document.getElementById('heartRate');
-                    if (hrEl) hrEl.textContent = hr;
+                    if (hrEl && hrEl.textContent === '--' || hrEl && hrEl.textContent === 'Loading...') {
+                        hrEl.textContent = '--';
+                    }
                     const hrStatus = document.getElementById('heartRateStatus');
-                    if (hrStatus) {
-                        hrStatus.textContent = hr >= 60 && hr <= 100 ? 'Normal' : hr < 60 ? 'Low' : 'High';
-                        hrStatus.className = `status-indicator ${hr >= 60 && hr <= 100 ? 'status-normal' : 'status-warning'}`;
-                    }
-                    // Check threshold even on simulated HR
-                    if ((hr > 130 || hr < 40) && window.EmergencyEngine && !EmergencyEngine._active) {
-                        EmergencyEngine.start('vitals', { heart_rate: hr });
+                    if (hrStatus && (hrStatus.textContent === 'Loading...' || !hrStatus.textContent)) {
+                        hrStatus.textContent = 'No HR stream';
+                        hrStatus.className = 'status-indicator';
                     }
                 }
 
-                // ── Steps — accumulate a session count (avg ~100 steps / 5s) ─
-                const newSteps = Math.floor(Math.random() * (140 - 60 + 1) + 60);
-                this.sessionSteps += newSteps;
+                // ── Steps & Calories ───────────────────────────────────────
+                // Standard wrist BLE bands do NOT expose a real-time pedometer GATT characteristic.
+                // Steps/calories are only accurate when synced from the companion app.
+                // We show '—' here so users see real data, not fabricated numbers.
+                //
+                // If your device exposes a proprietary steps characteristic, wire it up
+                // in the GATT subscription block above (Step 5).
                 const stepsEl = document.getElementById('steps');
-                if (stepsEl) stepsEl.textContent = this.sessionSteps.toLocaleString();
-                const stepsStatus = document.getElementById('stepsStatus');
-                const stepsProgress = document.getElementById('stepsProgress');
-                const goal = 10000;
-                const pct = Math.min((this.sessionSteps / goal) * 100, 100);
-                if (stepsProgress) {
-                    stepsProgress.style.width = `${pct}%`;
-                    stepsProgress.style.background = pct >= 100
-                        ? 'linear-gradient(90deg, #48bb78, #38a169)'
-                        : 'linear-gradient(90deg, #0d9488, #0891b2)';
+                if (stepsEl && (stepsEl.textContent === '--' || stepsEl.textContent === 'Loading...')) {
+                    stepsEl.textContent = '--';
                 }
-                if (stepsStatus) {
-                    stepsStatus.textContent = this.sessionSteps >= goal ? 'Goal Reached! 🎉' : `${Math.round(pct)}% of goal`;
-                    stepsStatus.className = `status-indicator ${this.sessionSteps >= goal ? 'status-excellent' : 'status-normal'}`;
+                const stepsStatus = document.getElementById('stepsStatus');
+                if (stepsStatus && !stepsStatus.textContent.includes('%')) {
+                    stepsStatus.textContent = 'Sync from app';
+                    stepsStatus.className = 'status-indicator';
                 }
 
-                // ── Calories — approx 0.04 kcal per step ──────────────────
-                this.sessionCalories = Math.round(this.sessionSteps * 0.04);
                 const calEl = document.getElementById('calories');
-                if (calEl) calEl.textContent = this.sessionCalories.toLocaleString();
+                if (calEl && (calEl.textContent === '--' || calEl.textContent === 'Loading...')) {
+                    calEl.textContent = '--';
+                }
                 const calStatus = document.getElementById('caloriesStatus');
-                if (calStatus) {
-                    calStatus.textContent = this.sessionCalories >= 2000 ? 'Great burn!' : 'Keep going!';
-                    calStatus.className = `status-indicator ${this.sessionCalories >= 2000 ? 'status-excellent' : 'status-normal'}`;
+                if (calStatus && !calStatus.textContent) {
+                    calStatus.textContent = 'Sync from app';
+                    calStatus.className = 'status-indicator';
                 }
 
             }, 5000); // Update every 5 seconds

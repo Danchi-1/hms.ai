@@ -220,6 +220,14 @@
     color: #ef4444;
 }
 
+.emergency-header-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+    animation: none;
+    box-shadow: none;
+}
+
 /* ── Escalation CTA in AI card ──────────────────────────── */
 .emergency-protocol-btn {
     display: inline-flex;
